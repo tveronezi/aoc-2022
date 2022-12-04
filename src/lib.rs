@@ -88,8 +88,8 @@ impl CheatPlay {
     }
 }
 
-#[derive(Debug, PartialEq)]
-struct Ooops(String);
+#[derive(Debug, PartialEq, Eq)]
+pub struct Ooops(String);
 
 impl FromStr for PlayResult {
     type Err = Ooops;
@@ -161,11 +161,30 @@ impl FromStr for CheatPlay {
     }
 }
 
-#[derive(Debug, PartialEq)]
-struct Rucksack {
+#[derive(Debug, PartialEq, Eq)]
+pub struct Rucksack {
     compartment_a: String,
     compartment_b: String,
     shared: HashSet<String>,
+}
+
+impl Rucksack {
+    pub fn intersection(&self, others: Vec<&Rucksack>) -> HashSet<String> {
+        let this = format!("{}{}", self.compartment_a, self.compartment_b)
+            .chars()
+            .map(|v| v.to_string())
+            .collect::<HashSet<String>>();
+        let mut result = this;
+
+        for other in others {
+            let other = format!("{}{}", other.compartment_a, other.compartment_b)
+                .chars()
+                .map(|v| v.to_string())
+                .collect::<HashSet<String>>();
+            result = result.intersection(&other).map(|v| v.to_owned()).collect();
+        }
+        result
+    }
 }
 
 impl FromStr for Rucksack {
@@ -238,6 +257,25 @@ pub fn total_priority_result(values: &str) -> usize {
                 .filter_map(|v| v.ok())
                 .sum::<usize>()
         })
+        .sum()
+}
+
+pub fn total_priority_result_three_elf_group(values: &str) -> usize {
+    let mut iter = values
+        .trim()
+        .lines()
+        .map(|v| v.trim())
+        .filter(|v| !v.is_empty())
+        .map(|v| v.parse::<Rucksack>())
+        .filter_map(|v| v.ok());
+
+    let mut results = vec![];
+    while let (Some(one), Some(two), Some(three)) = (iter.next(), iter.next(), iter.next()) {
+        results.push(one.intersection(vec![&two, &three]));
+    }
+    results
+        .iter()
+        .map(|v| v.iter().filter_map(|v| priority(v).ok()).sum::<usize>())
         .sum()
 }
 
@@ -347,5 +385,73 @@ mod tests {
     fn day_3_a() {
         let input = include_str!("day3.txt");
         assert_eq!(total_priority_result(input), 8153);
+    }
+
+    #[test]
+    fn calculate_shared_intersection() {
+        let one = "vJrwpWtwJgWrhcsFMMfFFhFp".parse::<Rucksack>().unwrap();
+        let two = "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL"
+            .parse::<Rucksack>()
+            .unwrap();
+        let three = "PmmdzqPrVvPwwTWBwg".parse::<Rucksack>().unwrap();
+        assert_eq!(
+            HashSet::from(["r".to_string()]),
+            one.intersection(vec![&two, &three])
+        )
+    }
+
+    #[test]
+    fn calculate_shared_intersection_2() {
+        let one = "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn"
+            .parse::<Rucksack>()
+            .unwrap();
+        let two = "ttgJtRGJQctTZtZT".parse::<Rucksack>().unwrap();
+        let three = "CrZsJsPPZsGzwwsLwLmpwMDw".parse::<Rucksack>().unwrap();
+        assert_eq!(
+            HashSet::from(["Z".to_string()]),
+            one.intersection(vec![&two, &three])
+        )
+    }
+
+    #[test]
+    fn calculate_shared_intersection_3() {
+        assert_eq!(
+            52,
+            "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn"
+                .parse::<Rucksack>()
+                .unwrap()
+                .intersection(vec![
+                    &"ttgJtRGJQctTZtZT".parse::<Rucksack>().unwrap(),
+                    &"CrZsJsPPZsGzwwsLwLmpwMDw".parse::<Rucksack>().unwrap()
+                ])
+                .iter()
+                .filter_map(|v| priority(v).ok())
+                .sum::<usize>()
+        )
+    }
+
+    #[test]
+    fn calculate_shared_intersection_4() {
+        assert_eq!(
+            18,
+            "vJrwpWtwJgWrhcsFMMfFFhFp"
+                .parse::<Rucksack>()
+                .unwrap()
+                .intersection(vec![
+                    &"jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL"
+                        .parse::<Rucksack>()
+                        .unwrap(),
+                    &"PmmdzqPrVvPwwTWBwg".parse::<Rucksack>().unwrap()
+                ])
+                .iter()
+                .filter_map(|v| priority(v).ok())
+                .sum::<usize>()
+        )
+    }
+
+    #[test]
+    fn day_3_b() {
+        let input = include_str!("day3.txt");
+        assert_eq!(total_priority_result_three_elf_group(input), 0);
     }
 }
