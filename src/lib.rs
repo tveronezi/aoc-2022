@@ -289,6 +289,11 @@ impl AssignmentRange {
     pub fn fully_contains(&self, other: &Self) -> bool {
         self.start <= other.start && self.end >= other.end
     }
+
+    pub fn overlaps(&self, other: &Self) -> bool {
+        (other.start >= self.start && other.start <= self.end)
+            || (other.end >= self.start && other.end <= self.end)
+    }
 }
 
 impl FromStr for AssignmentRange {
@@ -346,6 +351,18 @@ pub fn how_many_pairs_does_one_fully_contain_the_other(values: &str) -> usize {
         .map(|v| v.parse::<AssignmentPair>())
         .filter_map(|v| v.ok())
         .filter(|v| v.a.fully_contains(&v.b) || v.b.fully_contains(&v.a))
+        .count()
+}
+
+pub fn how_many_pairs_do_ranges_overlap(values: &str) -> usize {
+    values
+        .trim()
+        .lines()
+        .map(|v| v.trim())
+        .filter(|v| !v.is_empty())
+        .map(|v| v.parse::<AssignmentPair>())
+        .filter_map(|v| v.ok())
+        .filter(|v| v.a.overlaps(&v.b) || v.b.overlaps(&v.a))
         .count()
 }
 
@@ -548,8 +565,39 @@ mod tests {
     }
 
     #[test]
+    fn assignment_range_overlaps() {
+        assert!(
+            AssignmentRange { start: 2, end: 4 }.overlaps(&AssignmentRange { start: 2, end: 4 })
+        );
+        assert!(
+            AssignmentRange { start: 2, end: 4 }.overlaps(&AssignmentRange { start: 3, end: 4 })
+        );
+        assert!(
+            AssignmentRange { start: 2, end: 4 }.overlaps(&AssignmentRange { start: 0, end: 4 })
+        );
+        assert!(
+            AssignmentRange { start: 2, end: 4 }.overlaps(&AssignmentRange { start: 0, end: 3 })
+        );
+        assert!(
+            AssignmentRange { start: 2, end: 4 }.overlaps(&AssignmentRange { start: 4, end: 6 })
+        );
+        assert!(
+            !AssignmentRange { start: 2, end: 4 }.overlaps(&AssignmentRange { start: 0, end: 1 })
+        );
+        assert!(
+            !AssignmentRange { start: 2, end: 4 }.overlaps(&AssignmentRange { start: 6, end: 10 })
+        );
+    }
+
+    #[test]
     fn day_4_a() {
         let input = include_str!("day4.txt");
         assert_eq!(how_many_pairs_does_one_fully_contain_the_other(input), 584);
+    }
+
+    #[test]
+    fn day_4_b() {
+        let input = include_str!("day4.txt");
+        assert_eq!(how_many_pairs_do_ranges_overlap(input), 933);
     }
 }
