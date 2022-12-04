@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{collections::HashSet, str::FromStr};
 
 fn group_max(values: &'_ str) -> impl Iterator<Item = usize> + '_ {
     values
@@ -161,6 +161,48 @@ impl FromStr for CheatPlay {
     }
 }
 
+#[derive(Debug, PartialEq)]
+struct Rucksack {
+    compartment_a: String,
+    compartment_b: String,
+    shared: HashSet<String>,
+}
+
+impl FromStr for Rucksack {
+    type Err = Ooops;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (compartment_a, compartment_b) = s.split_at(s.len() / 2);
+        if compartment_a.len() != compartment_b.len() {
+            return Err(Ooops(format!(
+                "compartments don't have the same number of elements. {}:{}",
+                compartment_a, compartment_b
+            )));
+        }
+        let mut shared = HashSet::new();
+        for c in compartment_a.chars() {
+            if compartment_b.contains(c) {
+                shared.insert(c.into());
+            }
+        }
+        Ok(Self {
+            compartment_a: compartment_a.into(),
+            compartment_b: compartment_b.into(),
+            shared,
+        })
+    }
+}
+
+fn priority(c: impl Into<String>) -> Result<usize, Ooops> {
+    let c = c.into();
+    let c = c.chars().next().unwrap();
+    let index = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".find(c);
+    if index.is_none() {
+        return Err(Ooops(format!("{} is not valid", c)));
+    }
+    Ok(index.unwrap())
+}
+
 pub fn rps_result(values: &str) -> usize {
     values
         .trim()
@@ -178,6 +220,24 @@ pub fn cheat_rps_result(values: &str) -> usize {
         .map(|v| v.trim())
         .filter(|v| !v.is_empty())
         .map(|v| v.parse::<CheatPlay>().unwrap().value())
+        .sum()
+}
+
+pub fn total_priority_result(values: &str) -> usize {
+    values
+        .trim()
+        .lines()
+        .map(|v| v.trim())
+        .filter(|v| !v.is_empty())
+        .map(|v| {
+            v.parse::<Rucksack>()
+                .unwrap()
+                .shared
+                .iter()
+                .map(priority)
+                .filter_map(|v| v.ok())
+                .sum::<usize>()
+        })
         .sum()
 }
 
@@ -220,6 +280,72 @@ mod tests {
     #[test]
     fn day_2_b() {
         let input = include_str!("day2.txt");
-        assert_eq!(cheat_rps_result(input), 12);
+        assert_eq!(cheat_rps_result(input), 13889);
+    }
+
+    #[test]
+    fn split_rucksack() {
+        assert_eq!(
+            Rucksack {
+                compartment_a: "vJrwpWtwJgWr".into(),
+                compartment_b: "hcsFMMfFFhFp".into(),
+                shared: HashSet::from(["p".to_string()])
+            },
+            "vJrwpWtwJgWrhcsFMMfFFhFp".parse().unwrap()
+        );
+        assert_eq!(
+            Rucksack {
+                compartment_a: "jqHRNqRjqzjGDLGL".into(),
+                compartment_b: "rsFMfFZSrLrFZsSL".into(),
+                shared: HashSet::from(["L".to_string()]),
+            },
+            "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL".parse().unwrap()
+        );
+        assert_eq!(
+            Rucksack {
+                compartment_a: "PmmdzqPrV".into(),
+                compartment_b: "vPwwTWBwg".into(),
+                shared: HashSet::from(["P".to_string()])
+            },
+            "PmmdzqPrVvPwwTWBwg".parse().unwrap()
+        );
+        assert_eq!(
+            HashSet::from(["v".to_string()]),
+            "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn"
+                .parse::<Rucksack>()
+                .unwrap()
+                .shared
+        );
+        assert_eq!(
+            HashSet::from(["t".to_string()]),
+            "ttgJtRGJQctTZtZT".parse::<Rucksack>().unwrap().shared
+        );
+        assert_eq!(
+            HashSet::from(["s".to_string()]),
+            "CrZsJsPPZsGzwwsLwLmpwMDw"
+                .parse::<Rucksack>()
+                .unwrap()
+                .shared
+        );
+    }
+
+    #[test]
+    fn calculate_priority() {
+        assert_eq!(Ok(1), priority('a'));
+        assert_eq!(Ok(26), priority('z'));
+        assert_eq!(Ok(27), priority('A'));
+        assert_eq!(Ok(52), priority('Z'));
+        assert_eq!(Ok(16), priority('p'));
+        assert_eq!(Ok(38), priority('L'));
+        assert_eq!(Ok(42), priority('P'));
+        assert_eq!(Ok(22), priority('v'));
+        assert_eq!(Ok(20), priority('t'));
+        assert_eq!(Ok(19), priority('s'));
+    }
+
+    #[test]
+    fn day_3_a() {
+        let input = include_str!("day3.txt");
+        assert_eq!(total_priority_result(input), 8153);
     }
 }
