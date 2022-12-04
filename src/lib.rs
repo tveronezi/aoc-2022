@@ -1,4 +1,20 @@
+#![warn(missing_docs)]
+#![forbid(unsafe_code)]
+#![doc = include_str!("../README.md")]
+
 use std::{collections::HashSet, str::FromStr};
+
+/// Data for day 1
+pub const DAY1: &str = include_str!("day1.txt");
+
+/// Data for day 2
+pub const DAY2: &str = include_str!("day2.txt");
+
+/// Data for day 3
+pub const DAY3: &str = include_str!("day3.txt");
+
+/// Data for day 4
+pub const DAY4: &str = include_str!("day4.txt");
 
 fn group_max(values: &'_ str) -> impl Iterator<Item = usize> + '_ {
     values
@@ -6,7 +22,7 @@ fn group_max(values: &'_ str) -> impl Iterator<Item = usize> + '_ {
         .map(|v| v.trim())
         .filter(|v| !v.is_empty())
         .map(|v| {
-            v.split('\n')
+            v.lines()
                 .map(|v| v.trim())
                 .filter(|v| !v.is_empty())
                 .filter_map(|v| v.parse::<usize>().ok())
@@ -14,11 +30,13 @@ fn group_max(values: &'_ str) -> impl Iterator<Item = usize> + '_ {
         })
 }
 
-pub fn max_calories(values: &str) -> usize {
+/// Part A -> https://adventofcode.com/2022/day/1
+pub fn total_of_calories_with_the_elf_with_the_most_calories(values: &str) -> usize {
     return group_max(values).fold(0, usize::max);
 }
 
-pub fn max_calories_top_3(values: &str) -> usize {
+/// Part B -> https://adventofcode.com/2022/day/1
+pub fn total_of_calories_for_the_top_three_elfs(values: &str) -> usize {
     let mut values = group_max(values).collect::<Vec<usize>>();
     values.sort();
     values.reverse();
@@ -40,7 +58,7 @@ struct Play {
 }
 
 impl Play {
-    pub fn value(self) -> usize {
+    fn value(self) -> usize {
         match (self.mine, self.opponents) {
             (Value::Rock, Value::Rock) => 1 + 3,
             (Value::Rock, Value::Paper) => 1,
@@ -71,7 +89,7 @@ struct CheatPlay {
 }
 
 impl CheatPlay {
-    pub fn value(self) -> usize {
+    fn value(self) -> usize {
         match (self.opponent, self.result) {
             (Value::Rock, PlayResult::Win) => 2 + 6, // we play paper (+2)
             (Value::Rock, PlayResult::Draw) => 1 + 3, // we play rock (+1)
@@ -89,7 +107,7 @@ impl CheatPlay {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Ooops(String);
+struct Ooops(String);
 
 impl FromStr for PlayResult {
     type Err = Ooops;
@@ -162,14 +180,14 @@ impl FromStr for CheatPlay {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Rucksack {
+struct Rucksack {
     compartment_a: String,
     compartment_b: String,
     shared: HashSet<String>,
 }
 
 impl Rucksack {
-    pub fn intersection(&self, others: Vec<&Rucksack>) -> HashSet<String> {
+    fn intersection(&self, others: Vec<&Rucksack>) -> HashSet<String> {
         let this = format!("{}{}", self.compartment_a, self.compartment_b)
             .chars()
             .map(|v| v.to_string())
@@ -222,7 +240,8 @@ fn priority(c: impl Into<String>) -> Result<usize, Ooops> {
     Ok(index.unwrap())
 }
 
-pub fn rps_result(values: &str) -> usize {
+/// Part A -> https://adventofcode.com/2022/day/2
+pub fn total_score_according_to_your_strategy_guide(values: &str) -> usize {
     values
         .trim()
         .split('\n')
@@ -233,7 +252,8 @@ pub fn rps_result(values: &str) -> usize {
         .sum()
 }
 
-pub fn cheat_rps_result(values: &str) -> usize {
+/// Part B -> https://adventofcode.com/2022/day/2
+pub fn total_score_according_to_the_elfs_strategy_guide(values: &str) -> usize {
     values
         .trim()
         .split('\n')
@@ -244,7 +264,8 @@ pub fn cheat_rps_result(values: &str) -> usize {
         .sum()
 }
 
-pub fn total_priority_result(values: &str) -> usize {
+/// Part A -> https://adventofcode.com/2022/day/3
+pub fn the_sum_of_the_priorities_for_shared_item_types(values: &str) -> usize {
     values
         .trim()
         .lines()
@@ -261,7 +282,8 @@ pub fn total_priority_result(values: &str) -> usize {
         .sum()
 }
 
-pub fn total_priority_result_three_elf_group(values: &str) -> usize {
+/// Part B -> https://adventofcode.com/2022/day/3
+pub fn the_sum_of_the_priorities_for_shared_item_types_in_three_elfs_group(values: &str) -> usize {
     let mut iter = values
         .trim()
         .lines()
@@ -281,17 +303,17 @@ pub fn total_priority_result_three_elf_group(values: &str) -> usize {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct AssignmentRange {
+struct AssignmentRange {
     start: usize,
     end: usize,
 }
 
 impl AssignmentRange {
-    pub fn fully_contains(&self, other: &Self) -> bool {
+    fn fully_contains(&self, other: &Self) -> bool {
         self.start <= other.start && self.end >= other.end
     }
 
-    pub fn overlaps(&self, other: &Self) -> bool {
+    fn overlaps(&self, other: &Self) -> bool {
         (other.start >= self.start && other.start <= self.end)
             || (other.end >= self.start && other.end <= self.end)
     }
@@ -319,7 +341,7 @@ impl FromStr for AssignmentRange {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct AssignmentPair {
+struct AssignmentPair {
     a: AssignmentRange,
     b: AssignmentRange,
 }
@@ -343,6 +365,7 @@ impl FromStr for AssignmentPair {
     }
 }
 
+/// Part A -> https://adventofcode.com/2022/day/4
 pub fn how_many_pairs_does_one_fully_contain_the_other(values: &str) -> usize {
     values
         .trim()
@@ -355,6 +378,7 @@ pub fn how_many_pairs_does_one_fully_contain_the_other(values: &str) -> usize {
         .count()
 }
 
+/// Part B -> https://adventofcode.com/2022/day/4
 pub fn how_many_pairs_do_ranges_overlap(values: &str) -> usize {
     values
         .trim()
@@ -372,24 +396,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn day_1_a() {
-        let input = include_str!("day1.txt");
-        assert_eq!(max_calories(input), 69693);
-    }
-
-    #[test]
-    fn day_1_b() {
-        let input = include_str!("day1.txt");
-        assert_eq!(max_calories_top_3(input), 200945);
-    }
-
-    #[test]
-    fn day_2_a() {
-        let input = include_str!("day2.txt");
-        assert_eq!(rps_result(input), 14827);
-    }
-
-    #[test]
     fn play_result_parse() {
         assert_eq!(Ok(PlayResult::Lose), "X".parse());
         assert_eq!(Ok(PlayResult::Draw), "Y".parse());
@@ -401,12 +407,6 @@ mod tests {
         assert_eq!(4, "A Y".parse::<CheatPlay>().unwrap().value());
         assert_eq!(1, "B X".parse::<CheatPlay>().unwrap().value());
         assert_eq!(7, "C Z".parse::<CheatPlay>().unwrap().value());
-    }
-
-    #[test]
-    fn day_2_b() {
-        let input = include_str!("day2.txt");
-        assert_eq!(cheat_rps_result(input), 13889);
     }
 
     #[test]
@@ -467,12 +467,6 @@ mod tests {
         assert_eq!(Ok(22), priority('v'));
         assert_eq!(Ok(20), priority('t'));
         assert_eq!(Ok(19), priority('s'));
-    }
-
-    #[test]
-    fn day_3_a() {
-        let input = include_str!("day3.txt");
-        assert_eq!(total_priority_result(input), 8153);
     }
 
     #[test]
@@ -538,12 +532,6 @@ mod tests {
     }
 
     #[test]
-    fn day_3_b() {
-        let input = include_str!("day3.txt");
-        assert_eq!(total_priority_result_three_elf_group(input), 2342);
-    }
-
-    #[test]
     fn parse_assignment_range() {
         assert_eq!(Ok(AssignmentRange { start: 2, end: 4 }), "2-4".parse());
         assert_eq!(Ok(AssignmentRange { start: 6, end: 8 }), "6-8".parse());
@@ -588,17 +576,5 @@ mod tests {
         assert!(
             !AssignmentRange { start: 2, end: 4 }.overlaps(&AssignmentRange { start: 6, end: 10 })
         );
-    }
-
-    #[test]
-    fn day_4_a() {
-        let input = include_str!("day4.txt");
-        assert_eq!(how_many_pairs_does_one_fully_contain_the_other(input), 584);
-    }
-
-    #[test]
-    fn day_4_b() {
-        let input = include_str!("day4.txt");
-        assert_eq!(how_many_pairs_do_ranges_overlap(input), 933);
     }
 }
