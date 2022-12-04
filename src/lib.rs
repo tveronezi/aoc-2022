@@ -2,7 +2,7 @@
 #![forbid(unsafe_code)]
 #![doc = include_str!("../README.md")]
 
-use std::{collections::HashSet, str::FromStr};
+use std::{collections::HashSet, fmt::Display, str::FromStr};
 
 /// Input data for day 1
 pub const DAY1: &str = include_str!("day1.txt");
@@ -108,6 +108,14 @@ impl CheatPlay {
 
 #[derive(Debug, PartialEq, Eq)]
 struct Ooops(String);
+
+impl std::error::Error for Ooops {}
+
+impl Display for Ooops {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl FromStr for PlayResult {
     type Err = Ooops;
