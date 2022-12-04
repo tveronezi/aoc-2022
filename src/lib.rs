@@ -4,16 +4,16 @@
 
 use std::{collections::HashSet, str::FromStr};
 
-/// Data for day 1
+/// Input data for day 1
 pub const DAY1: &str = include_str!("day1.txt");
 
-/// Data for day 2
+/// Input data for day 2
 pub const DAY2: &str = include_str!("day2.txt");
 
-/// Data for day 3
+/// Input data for day 3
 pub const DAY3: &str = include_str!("day3.txt");
 
-/// Data for day 4
+/// Input data for day 4
 pub const DAY4: &str = include_str!("day4.txt");
 
 fn group_max(values: &'_ str) -> impl Iterator<Item = usize> + '_ {
@@ -30,12 +30,12 @@ fn group_max(values: &'_ str) -> impl Iterator<Item = usize> + '_ {
         })
 }
 
-/// Part A -> https://adventofcode.com/2022/day/1
+/// Part A -> <https://adventofcode.com/2022/day/1>
 pub fn total_of_calories_with_the_elf_with_the_most_calories(values: &str) -> usize {
     return group_max(values).fold(0, usize::max);
 }
 
-/// Part B -> https://adventofcode.com/2022/day/1
+/// Part B -> <https://adventofcode.com/2022/day/1>
 pub fn total_of_calories_for_the_top_three_elfs(values: &str) -> usize {
     let mut values = group_max(values).collect::<Vec<usize>>();
     values.sort();
@@ -240,7 +240,7 @@ fn priority(c: impl Into<String>) -> Result<usize, Ooops> {
     Ok(index.unwrap())
 }
 
-/// Part A -> https://adventofcode.com/2022/day/2
+/// Part A -> <https://adventofcode.com/2022/day/2>
 pub fn total_score_according_to_your_strategy_guide(values: &str) -> usize {
     values
         .trim()
@@ -252,7 +252,7 @@ pub fn total_score_according_to_your_strategy_guide(values: &str) -> usize {
         .sum()
 }
 
-/// Part B -> https://adventofcode.com/2022/day/2
+/// Part B -> <https://adventofcode.com/2022/day/2>
 pub fn total_score_according_to_the_elfs_strategy_guide(values: &str) -> usize {
     values
         .trim()
@@ -264,7 +264,7 @@ pub fn total_score_according_to_the_elfs_strategy_guide(values: &str) -> usize {
         .sum()
 }
 
-/// Part A -> https://adventofcode.com/2022/day/3
+/// Part A -> <https://adventofcode.com/2022/day/3>
 pub fn the_sum_of_the_priorities_for_shared_item_types(values: &str) -> usize {
     values
         .trim()
@@ -282,7 +282,7 @@ pub fn the_sum_of_the_priorities_for_shared_item_types(values: &str) -> usize {
         .sum()
 }
 
-/// Part B -> https://adventofcode.com/2022/day/3
+/// Part B -> <https://adventofcode.com/2022/day/3>
 pub fn the_sum_of_the_priorities_for_shared_item_types_in_three_elfs_group(values: &str) -> usize {
     let mut iter = values
         .trim()
@@ -365,7 +365,7 @@ impl FromStr for AssignmentPair {
     }
 }
 
-/// Part A -> https://adventofcode.com/2022/day/4
+/// Part A -> <https://adventofcode.com/2022/day/4>
 pub fn how_many_pairs_does_one_fully_contain_the_other(values: &str) -> usize {
     values
         .trim()
@@ -378,7 +378,7 @@ pub fn how_many_pairs_does_one_fully_contain_the_other(values: &str) -> usize {
         .count()
 }
 
-/// Part B -> https://adventofcode.com/2022/day/4
+/// Part B -> <https://adventofcode.com/2022/day/4>
 pub fn how_many_pairs_do_ranges_overlap(values: &str) -> usize {
     values
         .trim()
