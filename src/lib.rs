@@ -279,6 +279,76 @@ pub fn total_priority_result_three_elf_group(values: &str) -> usize {
         .sum()
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct AssignmentRange {
+    start: usize,
+    end: usize,
+}
+
+impl AssignmentRange {
+    pub fn fully_contains(&self, other: &Self) -> bool {
+        self.start <= other.start && self.end >= other.end
+    }
+}
+
+impl FromStr for AssignmentRange {
+    type Err = Ooops;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let values = s.split('-');
+        let values = values.collect::<Vec<&str>>();
+        let mut values = values.iter();
+        let start = values.next();
+        let end = values.next();
+        if start.is_none() || end.is_none() {
+            return Err(Ooops(format!("bad range {}", s)));
+        }
+        let start: usize = start
+            .unwrap()
+            .parse()
+            .map_err(|e| Ooops(format!("{}", e)))?;
+        let end: usize = end.unwrap().parse().map_err(|e| Ooops(format!("{}", e)))?;
+        Ok(AssignmentRange { start, end })
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct AssignmentPair {
+    a: AssignmentRange,
+    b: AssignmentRange,
+}
+
+impl FromStr for AssignmentPair {
+    type Err = Ooops;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let values = s.split(',');
+        let values = values.collect::<Vec<&str>>();
+        let mut values = values.iter();
+        let a = values.next();
+        let b = values.next();
+        if a.is_none() || b.is_none() {
+            return Err(Ooops(format!("bad pair {}", s)));
+        }
+        Ok(Self {
+            a: a.unwrap().parse()?,
+            b: b.unwrap().parse()?,
+        })
+    }
+}
+
+pub fn how_many_pairs_does_one_fully_contain_the_other(values: &str) -> usize {
+    values
+        .trim()
+        .lines()
+        .map(|v| v.trim())
+        .filter(|v| !v.is_empty())
+        .map(|v| v.parse::<AssignmentPair>())
+        .filter_map(|v| v.ok())
+        .filter(|v| v.a.fully_contains(&v.b) || v.b.fully_contains(&v.a))
+        .count()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -452,6 +522,34 @@ mod tests {
     #[test]
     fn day_3_b() {
         let input = include_str!("day3.txt");
-        assert_eq!(total_priority_result_three_elf_group(input), 0);
+        assert_eq!(total_priority_result_three_elf_group(input), 2342);
+    }
+
+    #[test]
+    fn parse_assignment_range() {
+        assert_eq!(Ok(AssignmentRange { start: 2, end: 4 }), "2-4".parse());
+        assert_eq!(Ok(AssignmentRange { start: 6, end: 8 }), "6-8".parse());
+    }
+
+    #[test]
+    fn assignment_range_contains() {
+        assert!(AssignmentRange { start: 2, end: 4 }
+            .fully_contains(&AssignmentRange { start: 2, end: 4 }));
+        assert!(AssignmentRange { start: 2, end: 4 }
+            .fully_contains(&AssignmentRange { start: 3, end: 4 }));
+        assert!(AssignmentRange { start: 2, end: 4 }
+            .fully_contains(&AssignmentRange { start: 4, end: 4 }));
+        assert!(AssignmentRange { start: 2, end: 4 }
+            .fully_contains(&AssignmentRange { start: 2, end: 3 }));
+        assert!(AssignmentRange { start: 2, end: 4 }
+            .fully_contains(&AssignmentRange { start: 2, end: 2 }));
+        assert!(!AssignmentRange { start: 2, end: 4 }
+            .fully_contains(&AssignmentRange { start: 1, end: 4 }));
+    }
+
+    #[test]
+    fn day_4_a() {
+        let input = include_str!("day4.txt");
+        assert_eq!(how_many_pairs_does_one_fully_contain_the_other(input), 584);
     }
 }
