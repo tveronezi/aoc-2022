@@ -191,22 +191,20 @@ impl FromStr for CheatPlay {
 struct Rucksack {
     compartment_a: String,
     compartment_b: String,
-    shared: HashSet<String>,
+    shared: HashSet<char>,
 }
 
 impl Rucksack {
-    fn intersection(&self, others: Vec<&Rucksack>) -> HashSet<String> {
+    fn intersection(&self, others: Vec<&Rucksack>) -> HashSet<char> {
         let this = format!("{}{}", self.compartment_a, self.compartment_b)
             .chars()
-            .map(|v| v.to_string())
-            .collect::<HashSet<String>>();
+            .collect::<HashSet<char>>();
         let mut result = this;
 
         for other in others {
             let other = format!("{}{}", other.compartment_a, other.compartment_b)
                 .chars()
-                .map(|v| v.to_string())
-                .collect::<HashSet<String>>();
+                .collect::<HashSet<char>>();
             result = result.intersection(&other).map(|v| v.to_owned()).collect();
         }
         result
@@ -227,7 +225,7 @@ impl FromStr for Rucksack {
         let mut shared = HashSet::new();
         for c in compartment_a.chars() {
             if compartment_b.contains(c) {
-                shared.insert(c.into());
+                shared.insert(c);
             }
         }
         Ok(Self {
@@ -238,10 +236,8 @@ impl FromStr for Rucksack {
     }
 }
 
-fn priority(c: impl Into<String>) -> Result<usize, Ooops> {
-    let c = c.into();
-    let c = c.chars().next().unwrap();
-    let index = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".find(c);
+fn priority(c: &char) -> Result<usize, Ooops> {
+    let index = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".find(*c);
     if index.is_none() {
         return Err(Ooops(format!("{} is not valid", c)));
     }
@@ -423,7 +419,7 @@ mod tests {
             Rucksack {
                 compartment_a: "vJrwpWtwJgWr".into(),
                 compartment_b: "hcsFMMfFFhFp".into(),
-                shared: HashSet::from(["p".to_string()])
+                shared: HashSet::from(['p'])
             },
             "vJrwpWtwJgWrhcsFMMfFFhFp".parse().unwrap()
         );
@@ -431,7 +427,7 @@ mod tests {
             Rucksack {
                 compartment_a: "jqHRNqRjqzjGDLGL".into(),
                 compartment_b: "rsFMfFZSrLrFZsSL".into(),
-                shared: HashSet::from(["L".to_string()]),
+                shared: HashSet::from(['L']),
             },
             "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL".parse().unwrap()
         );
@@ -439,23 +435,23 @@ mod tests {
             Rucksack {
                 compartment_a: "PmmdzqPrV".into(),
                 compartment_b: "vPwwTWBwg".into(),
-                shared: HashSet::from(["P".to_string()])
+                shared: HashSet::from(['P'])
             },
             "PmmdzqPrVvPwwTWBwg".parse().unwrap()
         );
         assert_eq!(
-            HashSet::from(["v".to_string()]),
+            HashSet::from(['v']),
             "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn"
                 .parse::<Rucksack>()
                 .unwrap()
                 .shared
         );
         assert_eq!(
-            HashSet::from(["t".to_string()]),
+            HashSet::from(['t']),
             "ttgJtRGJQctTZtZT".parse::<Rucksack>().unwrap().shared
         );
         assert_eq!(
-            HashSet::from(["s".to_string()]),
+            HashSet::from(['s']),
             "CrZsJsPPZsGzwwsLwLmpwMDw"
                 .parse::<Rucksack>()
                 .unwrap()
@@ -465,16 +461,16 @@ mod tests {
 
     #[test]
     fn calculate_priority() {
-        assert_eq!(Ok(1), priority('a'));
-        assert_eq!(Ok(26), priority('z'));
-        assert_eq!(Ok(27), priority('A'));
-        assert_eq!(Ok(52), priority('Z'));
-        assert_eq!(Ok(16), priority('p'));
-        assert_eq!(Ok(38), priority('L'));
-        assert_eq!(Ok(42), priority('P'));
-        assert_eq!(Ok(22), priority('v'));
-        assert_eq!(Ok(20), priority('t'));
-        assert_eq!(Ok(19), priority('s'));
+        assert_eq!(Ok(1), priority(&'a'));
+        assert_eq!(Ok(26), priority(&'z'));
+        assert_eq!(Ok(27), priority(&'A'));
+        assert_eq!(Ok(52), priority(&'Z'));
+        assert_eq!(Ok(16), priority(&'p'));
+        assert_eq!(Ok(38), priority(&'L'));
+        assert_eq!(Ok(42), priority(&'P'));
+        assert_eq!(Ok(22), priority(&'v'));
+        assert_eq!(Ok(20), priority(&'t'));
+        assert_eq!(Ok(19), priority(&'s'));
     }
 
     #[test]
@@ -484,10 +480,7 @@ mod tests {
             .parse::<Rucksack>()
             .unwrap();
         let three = "PmmdzqPrVvPwwTWBwg".parse::<Rucksack>().unwrap();
-        assert_eq!(
-            HashSet::from(["r".to_string()]),
-            one.intersection(vec![&two, &three])
-        )
+        assert_eq!(HashSet::from(['r']), one.intersection(vec![&two, &three]))
     }
 
     #[test]
@@ -497,10 +490,7 @@ mod tests {
             .unwrap();
         let two = "ttgJtRGJQctTZtZT".parse::<Rucksack>().unwrap();
         let three = "CrZsJsPPZsGzwwsLwLmpwMDw".parse::<Rucksack>().unwrap();
-        assert_eq!(
-            HashSet::from(["Z".to_string()]),
-            one.intersection(vec![&two, &three])
-        )
+        assert_eq!(HashSet::from(['Z']), one.intersection(vec![&two, &three]))
     }
 
     #[test]
