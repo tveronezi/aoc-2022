@@ -228,7 +228,8 @@ pub fn rps_result(values: &str) -> usize {
         .split('\n')
         .map(|v| v.trim())
         .filter(|v| !v.is_empty())
-        .map(|v| v.parse::<Play>().unwrap().value())
+        .filter_map(|v| v.parse::<Play>().ok())
+        .map(|v| v.value())
         .sum()
 }
 
@@ -238,7 +239,8 @@ pub fn cheat_rps_result(values: &str) -> usize {
         .split('\n')
         .map(|v| v.trim())
         .filter(|v| !v.is_empty())
-        .map(|v| v.parse::<CheatPlay>().unwrap().value())
+        .filter_map(|v| v.parse::<CheatPlay>().ok())
+        .map(|v| v.value())
         .sum()
 }
 
@@ -248,10 +250,9 @@ pub fn total_priority_result(values: &str) -> usize {
         .lines()
         .map(|v| v.trim())
         .filter(|v| !v.is_empty())
+        .filter_map(|v| v.parse::<Rucksack>().ok())
         .map(|v| {
-            v.parse::<Rucksack>()
-                .unwrap()
-                .shared
+            v.shared
                 .iter()
                 .map(priority)
                 .filter_map(|v| v.ok())
