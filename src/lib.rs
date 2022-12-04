@@ -9,7 +9,7 @@ fn group_max(values: &'_ str) -> impl Iterator<Item = usize> + '_ {
             v.split('\n')
                 .map(|v| v.trim())
                 .filter(|v| !v.is_empty())
-                .map(|v| v.parse::<usize>().unwrap())
+                .filter_map(|v| v.parse::<usize>().ok())
                 .sum()
         })
 }
