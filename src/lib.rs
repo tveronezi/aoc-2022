@@ -135,9 +135,9 @@ impl FromStr for Value {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            s if s == "A" || s == "X" => Ok(Value::Rock),
-            s if s == "B" || s == "Y" => Ok(Value::Paper),
-            s if s == "C" || s == "Z" => Ok(Value::Scisor),
+            "A" | "X" => Ok(Value::Rock),
+            "B" | "Y" => Ok(Value::Paper),
+            "C" | "Z" => Ok(Value::Scisor),
             _ => Err(Ooops(format!("[b] invalid s='{}'", s))),
         }
     }
@@ -485,12 +485,16 @@ mod tests {
 
     #[test]
     fn calculate_shared_intersection_2() {
-        let one = "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn"
-            .parse::<Rucksack>()
-            .unwrap();
-        let two = "ttgJtRGJQctTZtZT".parse::<Rucksack>().unwrap();
-        let three = "CrZsJsPPZsGzwwsLwLmpwMDw".parse::<Rucksack>().unwrap();
-        assert_eq!(HashSet::from(['Z']), one.intersection(vec![&two, &three]))
+        assert_eq!(
+            HashSet::from(['Z']),
+            "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn"
+                .parse::<Rucksack>()
+                .unwrap()
+                .intersection(vec![
+                    &"ttgJtRGJQctTZtZT".parse().unwrap(),
+                    &"CrZsJsPPZsGzwwsLwLmpwMDw".parse().unwrap()
+                ])
+        )
     }
 
     #[test]
@@ -501,8 +505,8 @@ mod tests {
                 .parse::<Rucksack>()
                 .unwrap()
                 .intersection(vec![
-                    &"ttgJtRGJQctTZtZT".parse::<Rucksack>().unwrap(),
-                    &"CrZsJsPPZsGzwwsLwLmpwMDw".parse::<Rucksack>().unwrap()
+                    &"ttgJtRGJQctTZtZT".parse().unwrap(),
+                    &"CrZsJsPPZsGzwwsLwLmpwMDw".parse().unwrap()
                 ])
                 .iter()
                 .filter_map(|v| priority(v).ok())
@@ -518,10 +522,8 @@ mod tests {
                 .parse::<Rucksack>()
                 .unwrap()
                 .intersection(vec![
-                    &"jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL"
-                        .parse::<Rucksack>()
-                        .unwrap(),
-                    &"PmmdzqPrVvPwwTWBwg".parse::<Rucksack>().unwrap()
+                    &"jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL".parse().unwrap(),
+                    &"PmmdzqPrVvPwwTWBwg".parse().unwrap()
                 ])
                 .iter()
                 .filter_map(|v| priority(v).ok())
