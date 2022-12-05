@@ -61,23 +61,23 @@ enum RpsMatchResult {
 impl RpsMatchResult {
     fn value(&self) -> usize {
         match self {
-            RpsMatchResult::Winner => 6,
-            RpsMatchResult::Draw => 3,
-            RpsMatchResult::Loser => 0,
+            Self::Winner => 6,
+            Self::Draw => 3,
+            Self::Loser => 0,
         }
     }
 
     fn hand(&self, against: &Hand) -> Hand {
         match (self, against) {
-            (RpsMatchResult::Winner, Hand::Rock) => Hand::Paper,
-            (RpsMatchResult::Winner, Hand::Paper) => Hand::Scisor,
-            (RpsMatchResult::Winner, Hand::Scisor) => Hand::Rock,
-            (RpsMatchResult::Loser, Hand::Rock) => Hand::Scisor,
-            (RpsMatchResult::Loser, Hand::Paper) => Hand::Rock,
-            (RpsMatchResult::Loser, Hand::Scisor) => Hand::Paper,
-            (RpsMatchResult::Draw, Hand::Rock) => Hand::Rock,
-            (RpsMatchResult::Draw, Hand::Paper) => Hand::Paper,
-            (RpsMatchResult::Draw, Hand::Scisor) => Hand::Scisor,
+            (Self::Winner, Hand::Rock) => Hand::Paper,
+            (Self::Winner, Hand::Paper) => Hand::Scisor,
+            (Self::Winner, Hand::Scisor) => Hand::Rock,
+            (Self::Loser, Hand::Rock) => Hand::Scisor,
+            (Self::Loser, Hand::Paper) => Hand::Rock,
+            (Self::Loser, Hand::Scisor) => Hand::Paper,
+            (Self::Draw, Hand::Rock) => Hand::Rock,
+            (Self::Draw, Hand::Paper) => Hand::Paper,
+            (Self::Draw, Hand::Scisor) => Hand::Scisor,
         }
     }
 }
@@ -85,47 +85,47 @@ impl RpsMatchResult {
 impl Hand {
     fn fight(&self, other: &Hand) -> RpsMatchResult {
         match (self, other) {
-            (Hand::Rock, Hand::Rock) => RpsMatchResult::Draw,
-            (Hand::Paper, Hand::Paper) => RpsMatchResult::Draw,
-            (Hand::Scisor, Hand::Scisor) => RpsMatchResult::Draw,
-            (Hand::Rock, Hand::Paper) => RpsMatchResult::Loser,
-            (Hand::Rock, Hand::Scisor) => RpsMatchResult::Winner,
-            (Hand::Paper, Hand::Rock) => RpsMatchResult::Winner,
-            (Hand::Paper, Hand::Scisor) => RpsMatchResult::Loser,
-            (Hand::Scisor, Hand::Rock) => RpsMatchResult::Loser,
-            (Hand::Scisor, Hand::Paper) => RpsMatchResult::Winner,
+            (Self::Rock, Self::Rock) => RpsMatchResult::Draw,
+            (Self::Paper, Self::Paper) => RpsMatchResult::Draw,
+            (Self::Scisor, Self::Scisor) => RpsMatchResult::Draw,
+            (Self::Rock, Self::Paper) => RpsMatchResult::Loser,
+            (Self::Rock, Self::Scisor) => RpsMatchResult::Winner,
+            (Self::Paper, Self::Rock) => RpsMatchResult::Winner,
+            (Self::Paper, Self::Scisor) => RpsMatchResult::Loser,
+            (Self::Scisor, Self::Rock) => RpsMatchResult::Loser,
+            (Self::Scisor, Self::Paper) => RpsMatchResult::Winner,
         }
     }
 
     fn weight(&self) -> usize {
         match self {
-            Hand::Rock => 1,
-            Hand::Paper => 2,
-            Hand::Scisor => 3,
+            Self::Rock => 1,
+            Self::Paper => 2,
+            Self::Scisor => 3,
         }
     }
 }
 
 #[derive(Debug, PartialEq)]
-struct RpsPlay {
+struct RpsMatch {
     mine: Hand,
     opponent: Hand,
 }
 
-impl RpsPlay {
-    fn value(self) -> usize {
+impl RpsMatch {
+    fn play(self) -> usize {
         self.mine.weight() + self.mine.fight(&self.opponent).value()
     }
 }
 
 #[derive(Debug, PartialEq)]
-struct CheatRpsPlay {
+struct CheatRpsMatch {
     opponent: Hand,
     result: RpsMatchResult,
 }
 
-impl CheatRpsPlay {
-    fn fight(self) -> usize {
+impl CheatRpsMatch {
+    fn play(self) -> usize {
         let my_hand = self.result.hand(&self.opponent);
         my_hand.weight() + self.result.value()
     }
@@ -147,9 +147,9 @@ impl FromStr for RpsMatchResult {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "X" => Ok(RpsMatchResult::Loser),
-            "Y" => Ok(RpsMatchResult::Draw),
-            "Z" => Ok(RpsMatchResult::Winner),
+            "X" => Ok(Self::Loser),
+            "Y" => Ok(Self::Draw),
+            "Z" => Ok(Self::Winner),
             _ => Err(Ooops(format!("[a] invalid s='{}'", s))),
         }
     }
@@ -160,55 +160,41 @@ impl FromStr for Hand {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "A" | "X" => Ok(Hand::Rock),
-            "B" | "Y" => Ok(Hand::Paper),
-            "C" | "Z" => Ok(Hand::Scisor),
+            "A" | "X" => Ok(Self::Rock),
+            "B" | "Y" => Ok(Self::Paper),
+            "C" | "Z" => Ok(Self::Scisor),
             _ => Err(Ooops(format!("[b] invalid s='{}'", s))),
         }
     }
 }
 
-impl FromStr for RpsPlay {
+impl FromStr for RpsMatch {
     type Err = Ooops;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut values = s.split(' ').take(2);
-        let opponents = values.next();
-        if opponents.is_none() {
-            return Err(Ooops(format!("[c] missing value '{}'", s)));
+        match (values.next(), values.next()) {
+            (Some(opponents), Some(mine)) => Ok(Self {
+                mine: mine.parse()?,
+                opponent: opponents.parse()?,
+            }),
+            (_, _) => Err(Ooops(format!("[c] missing value '{}'", s))),
         }
-        let opponents = opponents.unwrap();
-        let mine = values.next();
-        if mine.is_none() {
-            return Err(Ooops(format!("[d] missing value '{}'", s)));
-        }
-        let mine = mine.unwrap();
-        Ok(Self {
-            mine: mine.parse()?,
-            opponent: opponents.parse()?,
-        })
     }
 }
 
-impl FromStr for CheatRpsPlay {
+impl FromStr for CheatRpsMatch {
     type Err = Ooops;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut values = s.split(' ').take(2);
-        let opponent = values.next();
-        if opponent.is_none() {
-            return Err(Ooops(format!("[f] missing value '{}'", s)));
+        match (values.next(), values.next()) {
+            (Some(opponents), Some(result)) => Ok(Self {
+                opponent: opponents.parse()?,
+                result: result.parse()?,
+            }),
+            (_, _) => Err(Ooops(format!("[e] missing value '{}'", s))),
         }
-        let opponent = opponent.unwrap();
-        let result = values.next();
-        if result.is_none() {
-            return Err(Ooops(format!("[e] missing value '{}'", s)));
-        }
-        let result = result.unwrap();
-        Ok(Self {
-            opponent: opponent.parse()?,
-            result: result.parse()?,
-        })
     }
 }
 
@@ -276,8 +262,8 @@ pub fn total_score_according_to_your_strategy_guide(values: &str) -> usize {
         .split('\n')
         .map(|v| v.trim())
         .filter(|v| !v.is_empty())
-        .filter_map(|v| v.parse::<RpsPlay>().ok())
-        .map(|v| v.value())
+        .filter_map(|v| v.parse::<RpsMatch>().ok())
+        .map(|v| v.play())
         .sum()
 }
 
@@ -288,8 +274,8 @@ pub fn total_score_according_to_the_elfs_strategy_guide(values: &str) -> usize {
         .split('\n')
         .map(|v| v.trim())
         .filter(|v| !v.is_empty())
-        .filter_map(|v| v.parse::<CheatRpsPlay>().ok())
-        .map(|v| v.fight())
+        .filter_map(|v| v.parse::<CheatRpsMatch>().ok())
+        .map(|v| v.play())
         .sum()
 }
 
@@ -320,7 +306,6 @@ pub fn the_sum_of_the_priorities_for_shared_item_types_in_three_elfs_group(value
         .filter(|v| !v.is_empty())
         .map(|v| v.parse::<Rucksack>())
         .filter_map(|v| v.ok());
-
     let mut results = vec![];
     while let (Some(one), Some(two), Some(three)) = (iter.next(), iter.next(), iter.next()) {
         results.push(one.intersection(vec![&two, &three]));
@@ -355,17 +340,14 @@ impl FromStr for AssignmentRange {
         let values = s.split('-');
         let values = values.collect::<Vec<&str>>();
         let mut values = values.iter();
-        let start = values.next();
-        let end = values.next();
-        if start.is_none() || end.is_none() {
-            return Err(Ooops(format!("bad range {}", s)));
+        let map_err = |e| Ooops(format!("{}", e));
+        match (values.next(), values.next()) {
+            (Some(start), Some(end)) => Ok(AssignmentRange {
+                start: start.parse().map_err(map_err)?,
+                end: end.parse().map_err(map_err)?,
+            }),
+            (_, _) => Err(Ooops(format!("bad range {}", s))),
         }
-        let start: usize = start
-            .unwrap()
-            .parse()
-            .map_err(|e| Ooops(format!("{}", e)))?;
-        let end: usize = end.unwrap().parse().map_err(|e| Ooops(format!("{}", e)))?;
-        Ok(AssignmentRange { start, end })
     }
 }
 
@@ -382,15 +364,13 @@ impl FromStr for AssignmentPair {
         let values = s.split(',');
         let values = values.collect::<Vec<&str>>();
         let mut values = values.iter();
-        let a = values.next();
-        let b = values.next();
-        if a.is_none() || b.is_none() {
-            return Err(Ooops(format!("bad pair {}", s)));
+        match (values.next(), values.next()) {
+            (Some(a), Some(b)) => Ok(Self {
+                a: a.parse()?,
+                b: b.parse()?,
+            }),
+            (_, _) => Err(Ooops(format!("bad pair {}", s))),
         }
-        Ok(Self {
-            a: a.unwrap().parse()?,
-            b: b.unwrap().parse()?,
-        })
     }
 }
 
@@ -433,9 +413,9 @@ mod tests {
 
     #[test]
     fn cheat_play_calculation() {
-        assert_eq!(4, "A Y".parse::<CheatRpsPlay>().unwrap().fight());
-        assert_eq!(1, "B X".parse::<CheatRpsPlay>().unwrap().fight());
-        assert_eq!(7, "C Z".parse::<CheatRpsPlay>().unwrap().fight());
+        assert_eq!(4, "A Y".parse::<CheatRpsMatch>().unwrap().play());
+        assert_eq!(1, "B X".parse::<CheatRpsMatch>().unwrap().play());
+        assert_eq!(7, "C Z".parse::<CheatRpsMatch>().unwrap().play());
     }
 
     #[test]
