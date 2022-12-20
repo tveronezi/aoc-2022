@@ -1,7 +1,8 @@
 use std::fmt::Display;
 
+/// Lib errors
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct Ooops(pub(crate) String);
+pub struct Ooops(pub String);
 
 impl std::error::Error for Ooops {}
 

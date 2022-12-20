@@ -39,4 +39,10 @@ assert_eq!(
     584
 );
 assert_eq!(how_many_pairs_do_ranges_overlap(input::DAY4), 933);
+
+// Day 5
+assert_eq!(
+    crates_on_top_of_each_stack(input::DAY5).unwrap(),
+    "FWSHSPJWM".to_string()
+);
 ```

@@ -10,6 +10,7 @@ pub mod input;
 
 use std::{collections::HashSet, str::FromStr};
 
+use day5::{ActionsLines, Warehouse};
 use error::Ooops;
 
 fn group_max(values: &'_ str) -> impl Iterator<Item = usize> + '_ {
@@ -383,6 +384,16 @@ pub fn how_many_pairs_do_ranges_overlap(values: &str) -> usize {
         .filter_map(|v| v.ok())
         .filter(|v| v.a.overlaps(&v.b) || v.b.overlaps(&v.a))
         .count()
+}
+
+/// Part A -> <https://adventofcode.com/2022/day/5>
+pub fn crates_on_top_of_each_stack(values: &str) -> Result<String, Ooops> {
+    let mut warehouse: Warehouse = values.parse()?;
+    let actions: ActionsLines = values.parse()?;
+    for action in actions {
+        warehouse.shuffle(&action);
+    }
+    Ok(warehouse.top_crates())
 }
 
 #[cfg(test)]

@@ -17,7 +17,7 @@ impl Iterator for Stacks {
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut crates = Crates { crates: vec![] };
-        for l in self.lines.iter() {
+        for l in self.lines.iter().filter(|l| !l.trim().is_empty()) {
             let value = &l[1..2].trim();
             if value.is_empty() {
                 break;
@@ -41,9 +41,10 @@ impl FromStr for Stacks {
     type Err = Ooops;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = s.split("\n\n").next().ok_or(Ooops(
-            "the first split always has at least one element".to_owned(),
-        ))?;
+        let s = s
+            .split("\n\n")
+            .next()
+            .ok_or_else(|| Ooops("the first split always has at least one element".to_owned()))?;
         Ok(Self {
             lines: s
                 .lines()
@@ -70,7 +71,7 @@ impl Display for Stacks {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-struct CrateAction {
+pub(crate) struct CrateAction {
     quantity: usize,
     from: usize,
     to: usize,
@@ -102,7 +103,7 @@ impl FromStr for CrateAction {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-struct ActionsLines {
+pub(crate) struct ActionsLines {
     lines: VecDeque<String>,
 }
 
@@ -112,9 +113,8 @@ impl FromStr for ActionsLines {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s
             .split("\n\n")
-            .skip(1)
-            .next()
-            .ok_or(Ooops("missing actions in the repo".to_owned()))?;
+            .nth(1)
+            .ok_or_else(|| Ooops("missing actions in the repo".to_owned()))?;
         Ok(Self {
             lines: s
                 .lines()
@@ -144,7 +144,7 @@ impl Iterator for ActionsLines {
     }
 }
 
-struct Warehouse {
+pub(crate) struct Warehouse {
     stacks: Vec<Crates>,
 }
 
@@ -152,26 +152,42 @@ impl FromStr for Warehouse {
     type Err = Ooops;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let stacks = s.parse::<Stacks>()?; 
-        Ok(Self { 
-            stacks: stacks.collect::<Vec<Crates>>()
-         })
+        let stacks = s.parse::<Stacks>()?;
+        Ok(Self {
+            stacks: stacks.collect::<Vec<Crates>>(),
+        })
     }
 }
 
 impl Warehouse {
     pub fn shuffle(&mut self, action: &CrateAction) {
-        let from = self.stacks.get(action.from - 1);
-        let to = self.stacks.get(action.to - 1);
-
+        let mut taken = self
+            .stacks
+            .get_mut(action.from - 1)
+            .map_or(vec![], |source| {
+                source
+                    .crates
+                    .iter()
+                    .rev()
+                    .take(action.quantity)
+                    .cloned()
+                    .collect::<Vec<String>>()
+            });
+        let taken_number = taken.len();
+        if let Some(target) = self.stacks.get_mut(action.to - 1) {
+            target.crates.append(&mut taken);
+        }
+        if let Some(source) = self.stacks.get_mut(action.from - 1) {
+            source.crates.truncate(source.crates.len() - taken_number);
+        }
     }
-}
 
-/// Part A -> <https://adventofcode.com/2022/day/5>
-pub fn after_the_rearrangement_procedure_completes_what_crate_ends_up_on_top_of_each_stack(values: &str) -> Result<Vec<String>, Ooops> {
-    let stacks: Stacks = values.parse()?;
-    let actions: ActionsLines = values.parse()?;
-
+    pub fn top_crates(&self) -> String {
+        self.stacks
+            .iter()
+            .filter_map(|s| s.crates.last().map(|l| l.to_string()))
+            .collect()
+    }
 }
 
 #[cfg(test)]
@@ -183,15 +199,15 @@ mod tests {
         let parsed: ActionsLines = crate::input::DAY5.parse().unwrap();
         assert_eq!(
             &"move 2 from 5 to 9".to_string(),
-            parsed.lines.iter().nth(0).unwrap()
+            parsed.lines.get(0).unwrap()
         );
         assert_eq!(
             &"move 3 from 1 to 7".to_string(),
-            parsed.lines.iter().nth(1).unwrap()
+            parsed.lines.get(1).unwrap()
         );
         assert_eq!(
             &"move 2 from 3 to 9".to_string(),
-            parsed.lines.iter().nth(2).unwrap()
+            parsed.lines.get(2).unwrap()
         );
     }
 
@@ -311,12 +327,38 @@ mod tests {
             },
             stacks.next().unwrap()
         );
-        let stacks: Stacks = crate::input::DAY5.parse().unwrap();
+        let mut stacks: Stacks = crate::input::DAY5.parse().unwrap();
         assert_eq!(
             Crates {
                 crates: vec!["N".to_string(), "C".to_string(), "R".to_string()]
             },
-            stacks.skip(8).next().unwrap()
+            stacks.nth(8).unwrap()
         );
+    }
+
+    #[test]
+    fn move_crates() {
+        let mut warehouse = Warehouse {
+            stacks: vec![
+                Crates {
+                    crates: vec!["a".to_string(), "b".to_string(), "c".to_string()],
+                },
+                Crates { crates: vec![] },
+            ],
+        };
+        warehouse.shuffle(&CrateAction {
+            quantity: 10,
+            from: 1,
+            to: 2,
+        });
+        assert_eq!(warehouse.top_crates(), "a".to_string());
+        assert!(warehouse.stacks.get(0).unwrap().crates.is_empty());
+        warehouse.shuffle(&CrateAction {
+            quantity: 10,
+            from: 2,
+            to: 1,
+        });
+        assert_eq!(warehouse.top_crates(), "c".to_string());
+        assert!(!warehouse.stacks.get(0).unwrap().crates.is_empty());
     }
 }
