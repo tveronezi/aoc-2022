@@ -3,20 +3,14 @@
 #![doc = include_str!("../README.md")]
 
 mod day5;
+mod error;
 
-use std::{collections::HashSet, fmt::Display, str::FromStr};
+/// Input files
+pub mod input;
 
-/// Input data for day 1
-pub const DAY1: &str = include_str!("day1.txt");
+use std::{collections::HashSet, str::FromStr};
 
-/// Input data for day 2
-pub const DAY2: &str = include_str!("day2.txt");
-
-/// Input data for day 3
-pub const DAY3: &str = include_str!("day3.txt");
-
-/// Input data for day 4
-pub const DAY4: &str = include_str!("day4.txt");
+use error::Ooops;
 
 fn group_max(values: &'_ str) -> impl Iterator<Item = usize> + '_ {
     values
@@ -130,17 +124,6 @@ impl CheatRpsMatch {
     fn play(self) -> usize {
         let my_hand = self.result.hand(&self.opponent);
         my_hand.weight() + self.result.value()
-    }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-struct Ooops(String);
-
-impl std::error::Error for Ooops {}
-
-impl Display for Ooops {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
     }
 }
 
