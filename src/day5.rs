@@ -1,4 +1,4 @@
-use std::{fmt::Display, str::FromStr};
+use std::{collections::VecDeque, fmt::Display, str::FromStr};
 
 use crate::error::Ooops;
 
@@ -96,8 +96,51 @@ impl FromStr for CrateAction {
                     .parse::<usize>()
                     .expect("the regex should block this from happening"),
             })
-            .ok_or_else(|| Ooops(format!("invalid line > '{}'", s)));
+            .ok_or_else(|| Ooops(format!("invalid action > '{}'", s)));
         result
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct ActionsLines {
+    lines: VecDeque<String>,
+}
+
+impl FromStr for ActionsLines {
+    type Err = Ooops;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s
+            .split("\n\n")
+            .skip(1)
+            .next()
+            .ok_or(Ooops("missing actions in the repo".to_owned()))?;
+        Ok(Self {
+            lines: s
+                .lines()
+                .filter(|l| !l.trim().is_empty())
+                .map(|s| s.to_owned())
+                .collect::<VecDeque<String>>(),
+        })
+    }
+}
+
+impl Iterator for ActionsLines {
+    type Item = CrateAction;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut action = None;
+        loop {
+            let maybe_action = self.lines.pop_front().map(|l| l.parse::<CrateAction>());
+            if maybe_action.is_none() {
+                break;
+            }
+            if let Ok(a) = maybe_action.unwrap() {
+                action = Some(a);
+                break;
+            }
+        }
+        action
     }
 }
 
@@ -106,7 +149,77 @@ mod tests {
     use super::*;
 
     #[test]
-    fn get_lines() {
+    fn parse_actions() {
+        let parsed: ActionsLines = crate::input::DAY5.parse().unwrap();
+        assert_eq!(
+            &"move 2 from 5 to 9".to_string(),
+            parsed.lines.iter().nth(0).unwrap()
+        );
+        assert_eq!(
+            &"move 3 from 1 to 7".to_string(),
+            parsed.lines.iter().nth(1).unwrap()
+        );
+        assert_eq!(
+            &"move 2 from 3 to 9".to_string(),
+            parsed.lines.iter().nth(2).unwrap()
+        );
+    }
+
+    #[test]
+    fn parse_action() {
+        assert_eq!(
+            CrateAction {
+                from: 5,
+                to: 9,
+                quantity: 2
+            },
+            "move 2 from 5 to 9".parse().unwrap()
+        );
+        assert_eq!(
+            Err(Ooops("invalid action > 'banana'".to_string())),
+            "banana".parse::<CrateAction>()
+        );
+    }
+
+    #[test]
+    fn iterate_actions() {
+        let mut parsed: ActionsLines = crate::input::DAY5.parse().unwrap();
+        assert_eq!(
+            CrateAction {
+                from: 5,
+                to: 9,
+                quantity: 2
+            },
+            parsed.next().unwrap()
+        );
+        assert_eq!(
+            CrateAction {
+                from: 1,
+                to: 7,
+                quantity: 3
+            },
+            parsed.next().unwrap()
+        );
+        assert_eq!(
+            CrateAction {
+                from: 3,
+                to: 9,
+                quantity: 2
+            },
+            parsed.next().unwrap()
+        );
+        assert_eq!(
+            CrateAction {
+                from: 9,
+                to: 5,
+                quantity: 6
+            },
+            parsed.next().unwrap()
+        );
+    }
+
+    #[test]
+    fn parse_crates_lines() {
         assert_eq!(
             Stacks {
                 lines: vec![
