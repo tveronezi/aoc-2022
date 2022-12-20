@@ -2,6 +2,8 @@
 #![forbid(unsafe_code)]
 #![doc = include_str!("../README.md")]
 
+mod day5;
+
 use std::{collections::HashSet, fmt::Display, str::FromStr};
 
 /// Input data for day 1
