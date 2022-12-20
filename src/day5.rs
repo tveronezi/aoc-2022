@@ -144,6 +144,36 @@ impl Iterator for ActionsLines {
     }
 }
 
+struct Warehouse {
+    stacks: Vec<Crates>,
+}
+
+impl FromStr for Warehouse {
+    type Err = Ooops;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let stacks = s.parse::<Stacks>()?; 
+        Ok(Self { 
+            stacks: stacks.collect::<Vec<Crates>>()
+         })
+    }
+}
+
+impl Warehouse {
+    pub fn shuffle(&mut self, action: &CrateAction) {
+        let from = self.stacks.get(action.from - 1);
+        let to = self.stacks.get(action.to - 1);
+
+    }
+}
+
+/// Part A -> <https://adventofcode.com/2022/day/5>
+pub fn after_the_rearrangement_procedure_completes_what_crate_ends_up_on_top_of_each_stack(values: &str) -> Result<Vec<String>, Ooops> {
+    let stacks: Stacks = values.parse()?;
+    let actions: ActionsLines = values.parse()?;
+
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
