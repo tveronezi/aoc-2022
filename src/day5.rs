@@ -69,6 +69,38 @@ impl Display for Stacks {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
+struct CrateAction {
+    quantity: usize,
+    from: usize,
+    to: usize,
+}
+
+impl FromStr for CrateAction {
+    type Err = Ooops;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let re =
+            regex::Regex::new(r"move (?P<move>\d+) from (?P<from>\d+) to (?P<to>\d+)").unwrap();
+        let result = re
+            .captures_iter(s)
+            .next()
+            .map(|value| Self {
+                quantity: value["move"]
+                    .parse()
+                    .expect("the regex should block this from happening"),
+                from: value["from"]
+                    .parse::<usize>()
+                    .expect("the regex should block this from happening"),
+                to: value["to"]
+                    .parse::<usize>()
+                    .expect("the regex should block this from happening"),
+            })
+            .ok_or_else(|| Ooops(format!("invalid line > '{}'", s)));
+        result
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
