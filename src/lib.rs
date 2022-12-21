@@ -18,6 +18,7 @@ use day2::{CheatRpsMatch, RpsMatch};
 use day3::{priority, Rucksack};
 use day4::AssignmentPair;
 use day5::{ActionsLines, Warehouse};
+use day6::Stream;
 use error::Ooops;
 
 /// Part A -> <https://adventofcode.com/2022/day/1>
@@ -139,4 +140,17 @@ pub fn crates_on_top_of_each_stack_with_super_crane(values: &str) -> Result<Stri
         warehouse.shuffle_with_crane(&action, day5::CraneType::Super);
     }
     Ok(warehouse.top_crates())
+}
+
+/// Part A -> <https://adventofcode.com/2022/day/6>
+pub fn start_of_packet_marker_position(values: &str) -> Option<usize> {
+    let mut stream: Stream = values.into();
+    stream.find_map(|w| w.marker_position())
+}
+
+/// Part B -> <https://adventofcode.com/2022/day/6>
+pub fn start_of_message_marker_position(values: &str) -> Option<usize> {
+    let mut stream: Stream = values.into();
+    stream.window_size = 14;
+    stream.find_map(|w| w.marker_position())
 }

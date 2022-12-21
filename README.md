@@ -49,4 +49,14 @@ assert_eq!(
     crates_on_top_of_each_stack_with_super_crane(input::DAY5).unwrap(),
     "PWPWHGFZS".to_string()
 );
+
+// Day 6
+assert_eq!(
+    start_of_packet_marker_position(input::DAY6).unwrap(),
+    1578
+);
+assert_eq!(
+    start_of_message_marker_position(input::DAY6).unwrap(),
+    2178
+);
 ```
