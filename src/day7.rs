@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{rc::Rc, str::FromStr};
 
 use crate::error::Ooops;
 
@@ -30,26 +30,34 @@ impl FromStr for Line {
     }
 }
 
-enum Item {
-    Directory { name: String, children: Vec<Item> },
-    File { size: usize, name: String },
+trait FsItem {
+    fn size(&self) -> usize;
 }
 
-impl Item {
+#[derive(Debug, PartialEq, Eq, Clone)]
+struct FsDirectory {
+    name: String,
+    files: Vec<FsFile>,
+    directories: Vec<Rc<FsDirectory>>,
+}
+
+impl FsItem for FsDirectory {
     fn size(&self) -> usize {
-        match self {
-            Item::Directory { name: _, children } => children
-                .iter()
-                .map(|c| match c {
-                    Item::Directory {
-                        name: _,
-                        children: _,
-                    } => c.size(),
-                    Item::File { size, name: _ } => *size,
-                })
-                .sum(),
-            Item::File { size, name: _ } => *size,
-        }
+        let files: usize = self.files.iter().map(|c| c.size).sum();
+        let directories: usize = self.directories.iter().map(|c| c.size()).sum();
+        files + directories
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+struct FsFile {
+    size: usize,
+    name: String,
+}
+
+impl FsItem for FsFile {
+    fn size(&self) -> usize {
+        self.size
     }
 }
 
@@ -61,66 +69,98 @@ mod tests {
     fn directory_size() {
         assert_eq!(
             0,
-            Item::Directory {
+            FsDirectory {
                 name: "/".to_string(),
-                children: vec![]
+                files: vec![],
+                directories: vec![]
             }
             .size()
         );
         assert_eq!(
-            2000,
-            Item::Directory {
+            10,
+            FsDirectory {
                 name: "/".to_string(),
-                children: vec![Item::Directory {
+                files: vec![FsFile {
                     name: "a".to_string(),
-                    children: vec![Item::File {
-                        size: 2000,
-                        name: "my_file".to_string()
+                    size: 10
+                }],
+                directories: vec![]
+            }
+            .size()
+        );
+        assert_eq!(
+            20,
+            FsDirectory {
+                name: "/".to_string(),
+                files: vec![FsFile {
+                    name: "a".to_string(),
+                    size: 10
+                }],
+                directories: vec![Rc::new(FsDirectory {
+                    name: "b".to_string(),
+                    directories: vec![],
+                    files: vec![FsFile {
+                        name: "c".to_string(),
+                        size: 10
                     }]
-                }]
+                })]
             }
             .size()
         );
         assert_eq!(
-            2000,
-            Item::Directory {
+            20,
+            FsDirectory {
                 name: "/".to_string(),
-                children: vec![Item::Directory {
+                files: vec![FsFile {
                     name: "a".to_string(),
-                    children: vec![
-                        Item::File {
-                            size: 1000,
-                            name: "my_file".to_string()
-                        },
-                        Item::File {
-                            size: 1000,
-                            name: "my_file_2".to_string()
-                        }
-                    ]
-                }]
+                    size: 10
+                }],
+                directories: vec![Rc::new(FsDirectory {
+                    name: "b".to_string(),
+                    directories: vec![Rc::new(FsDirectory {
+                        name: "d".to_string(),
+                        files: vec![],
+                        directories: vec![Rc::new(FsDirectory {
+                            name: "e".to_string(),
+                            files: vec![],
+                            directories: vec![]
+                        })]
+                    })],
+                    files: vec![FsFile {
+                        name: "c".to_string(),
+                        size: 10
+                    }]
+                })]
             }
             .size()
         );
         assert_eq!(
-            2000,
-            Item::Directory {
+            30,
+            FsDirectory {
                 name: "/".to_string(),
-                children: vec![Item::Directory {
+                files: vec![FsFile {
                     name: "a".to_string(),
-                    children: vec![
-                        Item::File {
-                            size: 1000,
-                            name: "my_file".to_string()
-                        },
-                        Item::Directory {
-                            name: "b".to_string(),
-                            children: vec![Item::File {
-                                size: 1000,
-                                name: "my_file_2".to_string()
-                            }]
-                        }
-                    ]
-                }]
+                    size: 10
+                }],
+                directories: vec![Rc::new(FsDirectory {
+                    name: "b".to_string(),
+                    directories: vec![Rc::new(FsDirectory {
+                        name: "d".to_string(),
+                        files: vec![],
+                        directories: vec![Rc::new(FsDirectory {
+                            name: "e".to_string(),
+                            files: vec![FsFile {
+                                name: "f".to_string(),
+                                size: 10
+                            }],
+                            directories: vec![]
+                        })]
+                    })],
+                    files: vec![FsFile {
+                        name: "c".to_string(),
+                        size: 10
+                    }]
+                })]
             }
             .size()
         );
