@@ -396,6 +396,16 @@ pub fn crates_on_top_of_each_stack(values: &str) -> Result<String, Ooops> {
     Ok(warehouse.top_crates())
 }
 
+/// Part B -> <https://adventofcode.com/2022/day/5>
+pub fn crates_on_top_of_each_stack_with_super_crane(values: &str) -> Result<String, Ooops> {
+    let mut warehouse: Warehouse = values.parse()?;
+    let actions: ActionsLines = values.parse()?;
+    for action in actions {
+        warehouse.shuffle_with_crane(&action, day5::CraneType::Super);
+    }
+    Ok(warehouse.top_crates())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

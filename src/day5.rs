@@ -159,19 +159,36 @@ impl FromStr for Warehouse {
     }
 }
 
+pub(crate) enum CraneType {
+    Lame,
+    Super,
+}
+
 impl Warehouse {
     pub fn shuffle(&mut self, action: &CrateAction) {
+        self.shuffle_with_crane(action, CraneType::Lame)
+    }
+
+    pub fn shuffle_with_crane(&mut self, action: &CrateAction, crane_type: CraneType) {
         let mut taken = self
             .stacks
             .get_mut(action.from - 1)
-            .map_or(vec![], |source| {
-                source
+            .map_or(vec![], |source| match crane_type {
+                CraneType::Lame => source
                     .crates
                     .iter()
                     .rev()
                     .take(action.quantity)
                     .cloned()
-                    .collect::<Vec<String>>()
+                    .collect::<Vec<String>>(),
+                CraneType::Super => source
+                    .crates
+                    .iter()
+                    .rev()
+                    .take(action.quantity)
+                    .rev()
+                    .cloned()
+                    .collect::<Vec<String>>(),
             });
         let taken_number = taken.len();
         if let Some(target) = self.stacks.get_mut(action.to - 1) {
