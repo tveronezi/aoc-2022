@@ -45,4 +45,8 @@ assert_eq!(
     crates_on_top_of_each_stack(input::DAY5).unwrap(),
     "FWSHSPJWM".to_string()
 );
+assert_eq!(
+    crates_on_top_of_each_stack_with_super_crane(input::DAY5).unwrap(),
+    "PWPWHGFZS".to_string()
+);
 ```
