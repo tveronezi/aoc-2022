@@ -30,9 +30,101 @@ impl FromStr for Line {
     }
 }
 
+enum Item {
+    Directory { name: String, children: Vec<Item> },
+    File { size: usize, name: String },
+}
+
+impl Item {
+    fn size(&self) -> usize {
+        match self {
+            Item::Directory { name: _, children } => children
+                .iter()
+                .map(|c| match c {
+                    Item::Directory {
+                        name: _,
+                        children: _,
+                    } => c.size(),
+                    Item::File { size, name: _ } => *size,
+                })
+                .sum(),
+            Item::File { size, name: _ } => *size,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn directory_size() {
+        assert_eq!(
+            0,
+            Item::Directory {
+                name: "/".to_string(),
+                children: vec![]
+            }
+            .size()
+        );
+        assert_eq!(
+            2000,
+            Item::Directory {
+                name: "/".to_string(),
+                children: vec![Item::Directory {
+                    name: "a".to_string(),
+                    children: vec![Item::File {
+                        size: 2000,
+                        name: "my_file".to_string()
+                    }]
+                }]
+            }
+            .size()
+        );
+        assert_eq!(
+            2000,
+            Item::Directory {
+                name: "/".to_string(),
+                children: vec![Item::Directory {
+                    name: "a".to_string(),
+                    children: vec![
+                        Item::File {
+                            size: 1000,
+                            name: "my_file".to_string()
+                        },
+                        Item::File {
+                            size: 1000,
+                            name: "my_file_2".to_string()
+                        }
+                    ]
+                }]
+            }
+            .size()
+        );
+        assert_eq!(
+            2000,
+            Item::Directory {
+                name: "/".to_string(),
+                children: vec![Item::Directory {
+                    name: "a".to_string(),
+                    children: vec![
+                        Item::File {
+                            size: 1000,
+                            name: "my_file".to_string()
+                        },
+                        Item::Directory {
+                            name: "b".to_string(),
+                            children: vec![Item::File {
+                                size: 1000,
+                                name: "my_file_2".to_string()
+                            }]
+                        }
+                    ]
+                }]
+            }
+            .size()
+        );
+    }
 
     #[test]
     fn parse_lines() {
