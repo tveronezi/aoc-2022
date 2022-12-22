@@ -73,12 +73,49 @@ impl Iterator for VerticalTrees {
         }
         let line = line.expect("just checked this line exists");
         let neighbour_height = line.chars().nth(self.tree.left);
+        if neighbour_height.is_none() {
+            return None;
+        }
+        let neighbour_height = neighbour_height.expect("just checked this height exists");
         let top = self.top;
         self.top += 1;
         return Some(Tree {
             top,
             left: self.tree.left,
-            height: neighbour_height.unwrap_or('0').to_digit(10).unwrap_or(0) as usize,
+            height: neighbour_height.to_digit(10).unwrap_or(0) as usize,
+        });
+    }
+}
+
+struct HorizontalTrees {
+    field: String,
+    tree: Tree,
+    left: usize,
+}
+
+impl Iterator for HorizontalTrees {
+    type Item = Tree;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.left == self.tree.left {
+            self.left += 1;
+        }
+        let line = self.field.lines().nth(self.tree.top);
+        if line.is_none() {
+            return None;
+        }
+        let line = line.expect("just checked this line exists");
+        let neighbour_height = line.chars().nth(self.left);
+        if neighbour_height.is_none() {
+            return None;
+        }
+        let neighbour_height = neighbour_height.expect("just checked this height exists");
+        let left = self.left;
+        self.left += 1;
+        return Some(Tree {
+            top: self.tree.top,
+            left,
+            height: neighbour_height.to_digit(10).unwrap_or(0) as usize,
         });
     }
 }
@@ -86,6 +123,59 @@ impl Iterator for VerticalTrees {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn iterate_horizontal_trees() {
+        let mut trees = HorizontalTrees {
+            left: 0,
+            field: crate::input::DAY8.to_string(),
+            tree: Tree {
+                top: 1,
+                left: 1,
+                height: 3,
+            },
+        };
+        assert_eq!(
+            Some(Tree {
+                height: 3,
+                left: 0,
+                top: 1
+            }),
+            trees.next()
+        );
+        assert_eq!(
+            Some(Tree {
+                height: 3,
+                left: 2,
+                top: 1
+            }),
+            trees.next()
+        );
+        assert_eq!(
+            Some(Tree {
+                height: 0,
+                left: 3,
+                top: 1
+            }),
+            trees.next()
+        );
+        assert_eq!(
+            Some(Tree {
+                height: 0,
+                left: 4,
+                top: 1
+            }),
+            trees.next()
+        );
+        assert_eq!(
+            Some(Tree {
+                height: 1,
+                left: 5,
+                top: 1
+            }),
+            trees.next()
+        );
+    }
 
     #[test]
     fn iterate_vertical_trees() {
