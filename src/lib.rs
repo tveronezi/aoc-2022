@@ -176,3 +176,28 @@ pub fn sum_of_the_total_sizes_of_directories_smaller_than(
         });
     Ok(directories.sum())
 }
+
+/// Part B -> <https://adventofcode.com/2022/day/7>
+pub fn size_of_the_dir_to_be_deleted(
+    values: &str,
+    fs_size: usize,
+    required_free_space: usize,
+) -> Result<usize, Ooops> {
+    let root = input_to_root(values)?;
+    let root_size = root.size();
+    let free_space = fs_size - root_size;
+    let to_be_free = required_free_space - free_space;
+
+    let directories = root.ls_directories();
+    let directories = directories
+        .iter()
+        .filter(|d| {
+            let d = d.borrow();
+            d.size() >= to_be_free
+        })
+        .map(|d| {
+            let d = d.borrow();
+            d.size()
+        });
+    Ok(directories.min().unwrap_or(0))
+}
