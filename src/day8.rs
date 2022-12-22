@@ -1,11 +1,12 @@
-#[derive(Debug, PartialEq, Eq)]
-struct Tree {
+#[derive(Debug, PartialEq, Eq, Default, Clone)]
+pub(crate) struct Tree {
     top: usize,
     left: usize,
-    height: usize,
+    pub(crate) height: usize,
 }
 
-struct Trees {
+#[derive(Debug, PartialEq, Eq, Default)]
+pub(crate) struct Trees {
     field: String,
     top: usize,
     left: usize,
@@ -55,16 +56,23 @@ impl Iterator for Trees {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-enum VerticalTreesPosition {
+pub(crate) enum VerticalTreesPosition {
     Top,
     Bottom,
 }
 
-struct VerticalTrees {
-    field: String,
-    tree: Tree,
-    top: usize,
-    position: VerticalTreesPosition,
+impl Default for VerticalTreesPosition {
+    fn default() -> Self {
+        Self::Top
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Default)]
+pub(crate) struct VerticalTrees {
+    pub(crate) field: String,
+    pub(crate) tree: Tree,
+    pub(crate) top: usize,
+    pub(crate) position: VerticalTreesPosition,
 }
 
 impl Iterator for VerticalTrees {
@@ -101,16 +109,23 @@ impl Iterator for VerticalTrees {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-enum HorizontalTreesPosition {
+pub(crate) enum HorizontalTreesPosition {
     Left,
     Right,
 }
 
-struct HorizontalTrees {
-    field: String,
-    tree: Tree,
-    left: usize,
-    position: HorizontalTreesPosition,
+impl Default for HorizontalTreesPosition {
+    fn default() -> Self {
+        Self::Left
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Default)]
+pub(crate) struct HorizontalTrees {
+    pub(crate) field: String,
+    pub(crate) tree: Tree,
+    pub(crate) left: usize,
+    pub(crate) position: HorizontalTreesPosition,
 }
 
 impl Iterator for HorizontalTrees {
@@ -153,7 +168,6 @@ mod tests {
     #[test]
     fn iterate_horizontal_left_trees() {
         let mut trees = HorizontalTrees {
-            left: 0,
             field: crate::input::DAY8.to_string(),
             tree: Tree {
                 top: 1,
@@ -161,6 +175,7 @@ mod tests {
                 height: 3,
             },
             position: HorizontalTreesPosition::Left,
+            ..Default::default()
         };
         assert_eq!(
             Some(Tree {
@@ -176,7 +191,6 @@ mod tests {
     #[test]
     fn iterate_horizontal_right_trees() {
         let mut trees = HorizontalTrees {
-            left: 0,
             field: crate::input::DAY8.to_string(),
             tree: Tree {
                 top: 1,
@@ -184,6 +198,7 @@ mod tests {
                 height: 3,
             },
             position: HorizontalTreesPosition::Right,
+            ..Default::default()
         };
         assert_eq!(
             Some(Tree {
@@ -222,7 +237,6 @@ mod tests {
     #[test]
     fn iterate_vertical_top_trees() {
         let mut vertical_trees = VerticalTrees {
-            top: 0,
             field: crate::input::DAY8.to_string(),
             tree: Tree {
                 top: 1,
@@ -230,6 +244,7 @@ mod tests {
                 height: 3,
             },
             position: VerticalTreesPosition::Top,
+            ..Default::default()
         };
         assert_eq!(
             Some(Tree {
@@ -245,7 +260,6 @@ mod tests {
     #[test]
     fn iterate_vertical_bottom_trees() {
         let mut vertical_trees = VerticalTrees {
-            top: 0,
             field: crate::input::DAY8.to_string(),
             tree: Tree {
                 top: 1,
@@ -253,6 +267,7 @@ mod tests {
                 height: 3,
             },
             position: VerticalTreesPosition::Bottom,
+            ..Default::default()
         };
         assert_eq!(
             Some(Tree {

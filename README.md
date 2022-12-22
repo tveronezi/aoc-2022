@@ -69,4 +69,10 @@ assert_eq!(
     size_of_the_dir_to_be_deleted(input::DAY7, 70000000, 30000000).unwrap(),
     3979145
 );
+
+// Day 8
+assert_eq!(
+    trees_visible_from_outside_the_grid(input::DAY8),
+    1676
+);
 ```
