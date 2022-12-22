@@ -8,6 +8,7 @@ mod day3;
 mod day4;
 mod day5;
 mod day6;
+mod day7;
 mod error;
 
 /// Input files
@@ -19,6 +20,7 @@ use day3::{priority, Rucksack};
 use day4::AssignmentPair;
 use day5::{ActionsLines, Warehouse};
 use day6::Stream;
+use day7::{input_to_root, FsItem};
 use error::Ooops;
 
 /// Part A -> <https://adventofcode.com/2022/day/1>
@@ -153,4 +155,49 @@ pub fn start_of_message_marker_position(values: &str) -> Option<usize> {
     let mut stream: Stream = values.into();
     stream.window_size = 14;
     stream.find_map(|w| w.marker_position())
+}
+
+/// Part A -> <https://adventofcode.com/2022/day/7>
+pub fn sum_of_the_total_sizes_of_directories_smaller_than(
+    values: &str,
+    size: usize,
+) -> Result<usize, Ooops> {
+    let root = input_to_root(values)?;
+    let directories = root.ls_directories();
+    let directories = directories
+        .iter()
+        .filter(|d| {
+            let d = d.borrow();
+            d.size() <= size
+        })
+        .map(|d| {
+            let d = d.borrow();
+            d.size()
+        });
+    Ok(directories.sum())
+}
+
+/// Part B -> <https://adventofcode.com/2022/day/7>
+pub fn size_of_the_dir_to_be_deleted(
+    values: &str,
+    fs_size: usize,
+    required_free_space: usize,
+) -> Result<usize, Ooops> {
+    let root = input_to_root(values)?;
+    let root_size = root.size();
+    let free_space = fs_size - root_size;
+    let to_be_free = required_free_space - free_space;
+
+    let directories = root.ls_directories();
+    let directories = directories
+        .iter()
+        .filter(|d| {
+            let d = d.borrow();
+            d.size() >= to_be_free
+        })
+        .map(|d| {
+            let d = d.borrow();
+            d.size()
+        });
+    Ok(directories.min().unwrap_or(0))
 }
