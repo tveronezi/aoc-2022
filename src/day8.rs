@@ -54,9 +54,91 @@ impl Iterator for Trees {
     }
 }
 
+struct VerticalTrees {
+    field: String,
+    tree: Tree,
+    top: usize,
+}
+
+impl Iterator for VerticalTrees {
+    type Item = Tree;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.top == self.tree.top {
+            self.top += 1;
+        }
+        let line = self.field.lines().nth(self.top);
+        if line.is_none() {
+            return None;
+        }
+        let line = line.expect("just checked this line exists");
+        let neighbour_height = line.chars().nth(self.tree.left);
+        let top = self.top;
+        self.top += 1;
+        return Some(Tree {
+            top,
+            left: self.tree.left,
+            height: neighbour_height.unwrap_or('0').to_digit(10).unwrap_or(0) as usize,
+        });
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn iterate_vertical_trees() {
+        let mut vertical_trees = VerticalTrees {
+            top: 0,
+            field: crate::input::DAY8.to_string(),
+            tree: Tree {
+                top: 1,
+                left: 1,
+                height: 3,
+            },
+        };
+        assert_eq!(
+            Some(Tree {
+                height: 2,
+                left: 1,
+                top: 0
+            }),
+            vertical_trees.next()
+        );
+        assert_eq!(
+            Some(Tree {
+                height: 0,
+                left: 1,
+                top: 2
+            }),
+            vertical_trees.next()
+        );
+        assert_eq!(
+            Some(Tree {
+                height: 0,
+                left: 1,
+                top: 3
+            }),
+            vertical_trees.next()
+        );
+        assert_eq!(
+            Some(Tree {
+                height: 0,
+                left: 1,
+                top: 4
+            }),
+            vertical_trees.next()
+        );
+        assert_eq!(
+            Some(Tree {
+                height: 2,
+                left: 1,
+                top: 5
+            }),
+            vertical_trees.next()
+        );
+    }
 
     #[test]
     fn iterate_trees() {
