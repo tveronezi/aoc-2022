@@ -211,38 +211,35 @@ pub fn trees_visible_from_outside_the_grid(values: &str) -> usize {
     let trees: Trees = values.into();
     trees
         .filter(|tree| {
-            let any_bigger_from_left = HorizontalTrees {
+            let bigger_than_tree = |l: Tree| l.height >= tree.height;
+            let mut left = HorizontalTrees {
                 field: values.to_string(),
                 tree: tree.clone(),
                 position: HorizontalTreesPosition::Left,
                 ..Default::default()
-            }
-            .find(|l| l.height >= tree.height);
-            let any_bigger_from_right = HorizontalTrees {
+            };
+            let mut right = HorizontalTrees {
                 field: values.to_string(),
                 tree: tree.clone(),
                 position: HorizontalTreesPosition::Right,
                 ..Default::default()
-            }
-            .find(|l| l.height >= tree.height);
-            let any_bigger_from_top = VerticalTrees {
+            };
+            let mut top = VerticalTrees {
                 field: values.to_string(),
                 tree: tree.clone(),
                 position: VerticalTreesPosition::Top,
                 ..Default::default()
-            }
-            .find(|l| l.height >= tree.height);
-            let any_bigger_from_bottom = VerticalTrees {
+            };
+            let mut bottom = VerticalTrees {
                 field: values.to_string(),
                 tree: tree.clone(),
                 position: VerticalTreesPosition::Bottom,
                 ..Default::default()
-            }
-            .find(|l| l.height >= tree.height);
-            any_bigger_from_left.is_none()
-                || any_bigger_from_right.is_none()
-                || any_bigger_from_bottom.is_none()
-                || any_bigger_from_top.is_none()
+            };
+            !left.any(bigger_than_tree)
+                || !right.any(bigger_than_tree)
+                || !bottom.any(bigger_than_tree)
+                || !top.any(bigger_than_tree)
         })
         .count()
 }

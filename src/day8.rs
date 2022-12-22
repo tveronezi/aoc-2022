@@ -89,22 +89,18 @@ impl Iterator for VerticalTrees {
             self.top += 1;
         }
         let line = self.field.lines().nth(self.top);
-        if line.is_none() {
-            return None;
-        }
+        line?;
         let line = line.expect("just checked this line exists");
         let neighbour_height = line.chars().nth(self.tree.left);
-        if neighbour_height.is_none() {
-            return None;
-        }
+        neighbour_height?;
         let neighbour_height = neighbour_height.expect("just checked this height exists");
         let top = self.top;
         self.top += 1;
-        return Some(Tree {
+        Some(Tree {
             top,
             left: self.tree.left,
             height: neighbour_height.to_digit(10).unwrap_or(0) as usize,
-        });
+        })
     }
 }
 
@@ -142,22 +138,18 @@ impl Iterator for HorizontalTrees {
             self.left += 1;
         }
         let line = self.field.lines().nth(self.tree.top);
-        if line.is_none() {
-            return None;
-        }
+        line?;
         let line = line.expect("just checked this line exists");
         let neighbour_height = line.chars().nth(self.left);
-        if neighbour_height.is_none() {
-            return None;
-        }
+        neighbour_height?;
         let neighbour_height = neighbour_height.expect("just checked this height exists");
         let left = self.left;
         self.left += 1;
-        return Some(Tree {
+        Some(Tree {
             top: self.tree.top,
             left,
             height: neighbour_height.to_digit(10).unwrap_or(0) as usize,
-        });
+        })
     }
 }
 
