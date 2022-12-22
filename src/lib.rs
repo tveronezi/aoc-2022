@@ -20,6 +20,7 @@ use day3::{priority, Rucksack};
 use day4::AssignmentPair;
 use day5::{ActionsLines, Warehouse};
 use day6::Stream;
+use day7::{input_to_root, FsItem};
 use error::Ooops;
 
 /// Part A -> <https://adventofcode.com/2022/day/1>
@@ -154,4 +155,24 @@ pub fn start_of_message_marker_position(values: &str) -> Option<usize> {
     let mut stream: Stream = values.into();
     stream.window_size = 14;
     stream.find_map(|w| w.marker_position())
+}
+
+/// Part A -> <https://adventofcode.com/2022/day/7>
+pub fn sum_of_the_total_sizes_of_directories_smaller_than(
+    values: &str,
+    size: usize,
+) -> Result<usize, Ooops> {
+    let root = input_to_root(values)?;
+    let directories = root.ls_directories();
+    let directories = directories
+        .iter()
+        .filter(|d| {
+            let d = d.borrow();
+            d.size() <= size
+        })
+        .map(|d| {
+            let d = d.borrow();
+            d.size()
+        });
+    Ok(directories.sum())
 }

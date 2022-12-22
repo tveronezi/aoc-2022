@@ -30,15 +30,25 @@ impl FromStr for Line {
     }
 }
 
-trait FsItem {
+pub(crate) trait FsItem {
     fn size(&self) -> usize;
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-struct FsDirectory {
+pub(crate) struct FsDirectory {
     name: String,
     files: Vec<FsFile>,
     directories: Vec<Rc<RefCell<FsDirectory>>>,
+}
+
+impl FsDirectory {
+    pub(crate) fn ls_directories(&self) -> Vec<Rc<RefCell<FsDirectory>>> {
+        let mut result: Vec<Rc<RefCell<FsDirectory>>> = self.directories.to_vec();
+        for d in self.directories.iter() {
+            result.extend(d.borrow().ls_directories());
+        }
+        result
+    }
 }
 
 impl FsItem for FsDirectory {
@@ -61,7 +71,7 @@ impl FsItem for FsFile {
     }
 }
 
-fn input_to_root(s: &str) -> Result<FsDirectory, Ooops> {
+pub(crate) fn input_to_root(s: &str) -> Result<FsDirectory, Ooops> {
     let root = Rc::new(RefCell::new(FsDirectory {
         name: "/".to_string(),
         files: vec![],
@@ -128,6 +138,103 @@ fn input_to_root(s: &str) -> Result<FsDirectory, Ooops> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn output_to_items_iteration() {
+        let input = vec![
+            "$ cd /",
+            "$ ls",
+            "dir a",
+            "14848514 b.txt",
+            "8504156 c.dat",
+            "dir d",
+            "$ cd a",
+            "$ ls",
+            "dir e",
+            "29116 f",
+            "2557 g",
+            "62596 h.lst",
+            "$ cd e",
+            "$ ls",
+            "584 i",
+            "$ cd ..",
+            "$ cd ..",
+            "$ cd d",
+            "$ ls",
+            "4060174 j",
+            "8033020 d.log",
+            "5626152 d.ext",
+            "7214296 k",
+        ]
+        .join("\n");
+        let e = FsDirectory {
+            name: "e".to_string(),
+            directories: vec![],
+            files: vec![FsFile {
+                name: "i".to_string(),
+                size: 584,
+            }],
+        };
+        assert_eq!(584, e.size());
+        let a = FsDirectory {
+            name: "a".to_string(),
+            directories: vec![Rc::new(RefCell::new(e))],
+            files: vec![
+                FsFile {
+                    name: "f".to_string(),
+                    size: 29116,
+                },
+                FsFile {
+                    name: "g".to_string(),
+                    size: 2557,
+                },
+                FsFile {
+                    name: "h.lst".to_string(),
+                    size: 62596,
+                },
+            ],
+        };
+        assert_eq!(94853, a.size());
+        let d = FsDirectory {
+            name: "d".to_string(),
+            directories: vec![],
+            files: vec![
+                FsFile {
+                    name: "j".to_string(),
+                    size: 4060174,
+                },
+                FsFile {
+                    name: "d.log".to_string(),
+                    size: 8033020,
+                },
+                FsFile {
+                    name: "d.ext".to_string(),
+                    size: 5626152,
+                },
+                FsFile {
+                    name: "k".to_string(),
+                    size: 7214296,
+                },
+            ],
+        };
+        assert_eq!(24933642, d.size());
+        let root = FsDirectory {
+            name: "/".to_string(),
+            directories: vec![Rc::new(RefCell::new(a)), Rc::new(RefCell::new(d))],
+            files: vec![
+                FsFile {
+                    name: "b.txt".to_string(),
+                    size: 14848514,
+                },
+                FsFile {
+                    name: "c.dat".to_string(),
+                    size: 8504156,
+                },
+            ],
+        };
+        assert_eq!(root, input_to_root(&input).unwrap());
+        assert_eq!(48381165, root.size());
+    }
 
     #[test]
     fn directory_size() {

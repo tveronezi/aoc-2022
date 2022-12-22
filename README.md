@@ -59,4 +59,10 @@ assert_eq!(
     start_of_message_marker_position(input::DAY6).unwrap(),
     2178
 );
+
+// Day 7
+assert_eq!(
+    sum_of_the_total_sizes_of_directories_smaller_than(input::DAY7, 100000).unwrap(),
+    1908462
+);
 ```
