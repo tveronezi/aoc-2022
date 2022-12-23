@@ -9,6 +9,7 @@ mod day4;
 mod day5;
 mod day6;
 mod day7;
+mod day8;
 mod error;
 
 /// Input files
@@ -21,6 +22,9 @@ use day4::AssignmentPair;
 use day5::{ActionsLines, Warehouse};
 use day6::Stream;
 use day7::{input_to_root, FsItem};
+use day8::{
+    HorizontalTrees, HorizontalTreesPosition, Tree, Trees, VerticalTrees, VerticalTreesPosition,
+};
 use error::Ooops;
 
 /// Part A -> <https://adventofcode.com/2022/day/1>
@@ -200,4 +204,42 @@ pub fn size_of_the_dir_to_be_deleted(
             d.size()
         });
     Ok(directories.min().unwrap_or(0))
+}
+
+/// Part A -> <https://adventofcode.com/2022/day/8>
+pub fn trees_visible_from_outside_the_grid(values: &str) -> usize {
+    let trees: Trees = values.into();
+    trees
+        .filter(|tree| {
+            let bigger_than_tree = |l: Tree| l.height >= tree.height;
+            let mut left = HorizontalTrees {
+                field: values.to_string(),
+                tree: tree.clone(),
+                position: HorizontalTreesPosition::Left,
+                ..Default::default()
+            };
+            let mut right = HorizontalTrees {
+                field: values.to_string(),
+                tree: tree.clone(),
+                position: HorizontalTreesPosition::Right,
+                ..Default::default()
+            };
+            let mut top = VerticalTrees {
+                field: values.to_string(),
+                tree: tree.clone(),
+                position: VerticalTreesPosition::Top,
+                ..Default::default()
+            };
+            let mut bottom = VerticalTrees {
+                field: values.to_string(),
+                tree: tree.clone(),
+                position: VerticalTreesPosition::Bottom,
+                ..Default::default()
+            };
+            !left.any(bigger_than_tree)
+                || !right.any(bigger_than_tree)
+                || !bottom.any(bigger_than_tree)
+                || !top.any(bigger_than_tree)
+        })
+        .count()
 }
