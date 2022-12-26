@@ -166,9 +166,92 @@ impl Iterator for RightTrees {
     }
 }
 
+pub(crate) enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+fn calculate_viewing_distance<I: Iterator<Item = Tree>>(trees: I, tree: &Tree) -> usize {
+    let mut count = 0;
+    for t in trees {
+        count += 1;
+        if t.height >= tree.height {
+            break;
+        }
+    }
+    count
+}
+
+pub(crate) fn viewing_distance(field: String, tree: &Tree, direction: Direction) -> usize {
+    match direction {
+        Direction::Up => calculate_viewing_distance(
+            TopTrees {
+                field,
+                from_left: tree.left,
+                from_top: tree.top,
+            },
+            tree,
+        ),
+        Direction::Down => calculate_viewing_distance(
+            BottomTrees {
+                field,
+                from_left: tree.left,
+                from_top: tree.top,
+            },
+            tree,
+        ),
+        Direction::Left => calculate_viewing_distance(
+            LeftTrees {
+                field,
+                from_left: tree.left,
+                from_top: tree.top,
+            },
+            tree,
+        ),
+        Direction::Right => calculate_viewing_distance(
+            RightTrees {
+                field,
+                from_left: tree.left,
+                from_top: tree.top,
+            },
+            tree,
+        ),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_viewing_distance() {
+        let field = vec!["30373", "25512", "65332", "33549", "35390"].join("\n");
+        let tree = Tree {
+            top: 1,
+            left: 2,
+            height: 5,
+        };
+        assert_eq!(1, viewing_distance(field.clone(), &tree, Direction::Up));
+        assert_eq!(1, viewing_distance(field.clone(), &tree, Direction::Left));
+        assert_eq!(2, viewing_distance(field.clone(), &tree, Direction::Right));
+        assert_eq!(2, viewing_distance(field, &tree, Direction::Down));
+    }
+
+    #[test]
+    fn test_viewing_distance_better() {
+        let field = vec!["30373", "25512", "65332", "33549", "35390"].join("\n");
+        let tree = Tree {
+            top: 3,
+            left: 2,
+            height: 5,
+        };
+        assert_eq!(2, viewing_distance(field.clone(), &tree, Direction::Up));
+        assert_eq!(2, viewing_distance(field.clone(), &tree, Direction::Left));
+        assert_eq!(1, viewing_distance(field.clone(), &tree, Direction::Down));
+        assert_eq!(2, viewing_distance(field, &tree, Direction::Right));
+    }
 
     #[test]
     fn iterate_horizontal_left_trees() {

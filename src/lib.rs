@@ -22,7 +22,9 @@ use day4::AssignmentPair;
 use day5::{ActionsLines, Warehouse};
 use day6::Stream;
 use day7::{input_to_root, FsItem};
-use day8::{BottomTrees, LeftTrees, RightTrees, TopTrees, Tree, Trees};
+use day8::{
+    viewing_distance, BottomTrees, Direction, LeftTrees, RightTrees, TopTrees, Tree, Trees,
+};
 use error::Ooops;
 
 /// Part A -> <https://adventofcode.com/2022/day/1>
@@ -236,4 +238,18 @@ pub fn trees_visible_from_outside_the_grid(values: &str) -> usize {
                 || !top.any(bigger_than_tree)
         })
         .count()
+}
+
+/// Part B -> <https://adventofcode.com/2022/day/8>
+pub fn highest_scenic_score_possible(values: &str) -> usize {
+    let trees: Trees = values.into();
+    trees
+        .map(|t| {
+            viewing_distance(values.to_string(), &t, Direction::Down)
+                * viewing_distance(values.to_string(), &t, Direction::Up)
+                * viewing_distance(values.to_string(), &t, Direction::Left)
+                * viewing_distance(values.to_string(), &t, Direction::Right)
+        })
+        .max()
+        .unwrap_or(0)
 }

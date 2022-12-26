@@ -75,4 +75,8 @@ assert_eq!(
     trees_visible_from_outside_the_grid(input::DAY8),
     1676
 );
+assert_eq!(
+    highest_scenic_score_possible(input::DAY8),
+    313200
+);
 ```
