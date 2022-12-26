@@ -22,9 +22,7 @@ use day4::AssignmentPair;
 use day5::{ActionsLines, Warehouse};
 use day6::Stream;
 use day7::{input_to_root, FsItem};
-use day8::{
-    HorizontalTrees, HorizontalTreesPosition, Tree, Trees, VerticalTrees, VerticalTreesPosition,
-};
+use day8::{BottomTrees, LeftTrees, RightTrees, TopTrees, Tree, Trees};
 use error::Ooops;
 
 /// Part A -> <https://adventofcode.com/2022/day/1>
@@ -212,29 +210,25 @@ pub fn trees_visible_from_outside_the_grid(values: &str) -> usize {
     trees
         .filter(|tree| {
             let bigger_than_tree = |l: Tree| l.height >= tree.height;
-            let mut left = HorizontalTrees {
+            let mut left = LeftTrees {
                 field: values.to_string(),
-                tree: tree.clone(),
-                position: HorizontalTreesPosition::Left,
-                ..Default::default()
+                from_left: tree.left,
+                from_top: tree.top,
             };
-            let mut right = HorizontalTrees {
+            let mut right = RightTrees {
                 field: values.to_string(),
-                tree: tree.clone(),
-                position: HorizontalTreesPosition::Right,
-                ..Default::default()
+                from_left: tree.left,
+                from_top: tree.top,
             };
-            let mut top = VerticalTrees {
+            let mut top = TopTrees {
                 field: values.to_string(),
-                tree: tree.clone(),
-                position: VerticalTreesPosition::Top,
-                ..Default::default()
+                from_left: tree.left,
+                from_top: tree.top,
             };
-            let mut bottom = VerticalTrees {
+            let mut bottom = BottomTrees {
                 field: values.to_string(),
-                tree: tree.clone(),
-                position: VerticalTreesPosition::Bottom,
-                ..Default::default()
+                from_left: tree.left,
+                from_top: tree.top,
             };
             !left.any(bigger_than_tree)
                 || !right.any(bigger_than_tree)
