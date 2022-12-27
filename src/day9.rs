@@ -9,30 +9,30 @@ pub(crate) struct Position {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) enum Movement {
+pub(crate) enum Motion {
     Up(u32),
     Down(u32),
     Left(u32),
     Right(u32),
 }
 
-impl FromStr for Movement {
+impl FromStr for Motion {
     type Err = Ooops;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut split = s.split_whitespace();
         match (split.next(), split.next()) {
             (Some(direction), Some(value)) if direction == "U" && value.parse::<u32>().is_ok() => {
-                Ok(Movement::Up(value.parse::<u32>().unwrap()))
+                Ok(Motion::Up(value.parse::<u32>().unwrap()))
             }
             (Some(direction), Some(value)) if direction == "D" && value.parse::<u32>().is_ok() => {
-                Ok(Movement::Down(value.parse::<u32>().unwrap()))
+                Ok(Motion::Down(value.parse::<u32>().unwrap()))
             }
             (Some(direction), Some(value)) if direction == "L" && value.parse::<u32>().is_ok() => {
-                Ok(Movement::Left(value.parse::<u32>().unwrap()))
+                Ok(Motion::Left(value.parse::<u32>().unwrap()))
             }
             (Some(direction), Some(value)) if direction == "R" && value.parse::<u32>().is_ok() => {
-                Ok(Movement::Right(value.parse::<u32>().unwrap()))
+                Ok(Motion::Right(value.parse::<u32>().unwrap()))
             }
             _ => Err(Ooops(format!("invalid movement '{}'", s))),
         }
@@ -54,9 +54,9 @@ impl Default for Rope {
     }
 }
 
-pub(crate) fn move_head(mut rope: Rope, movement: Movement) -> Rope {
-    match movement {
-        Movement::Up(steps) => {
+pub(crate) fn move_head(mut rope: Rope, motion: Motion) -> Rope {
+    match motion {
+        Motion::Up(steps) => {
             for _ in 0..steps {
                 rope.head.top += 1;
                 let tail = rope.tail.last().expect("this list starts with one element");
@@ -68,7 +68,7 @@ pub(crate) fn move_head(mut rope: Rope, movement: Movement) -> Rope {
                 }
             }
         }
-        Movement::Down(steps) => {
+        Motion::Down(steps) => {
             for _ in 0..steps {
                 rope.head.top -= 1;
                 let tail = rope.tail.last().expect("this list starts with one element");
@@ -80,7 +80,7 @@ pub(crate) fn move_head(mut rope: Rope, movement: Movement) -> Rope {
                 }
             }
         }
-        Movement::Left(steps) => {
+        Motion::Left(steps) => {
             for _ in 0..steps {
                 rope.head.left -= 1;
                 let tail = rope.tail.last().expect("this list starts with one element");
@@ -92,7 +92,7 @@ pub(crate) fn move_head(mut rope: Rope, movement: Movement) -> Rope {
                 }
             }
         }
-        Movement::Right(steps) => {
+        Motion::Right(steps) => {
             for _ in 0..steps {
                 rope.head.left += 1;
                 let tail = rope.tail.last().expect("this list starts with one element");
@@ -114,20 +114,20 @@ mod tests {
 
     #[test]
     fn parsing() {
-        assert_eq!(Ok(Movement::Down(2)), "D 2".parse());
-        assert_eq!(Ok(Movement::Up(2)), "U 2".parse());
-        assert_eq!(Ok(Movement::Left(2)), "L 2".parse());
-        assert_eq!(Ok(Movement::Right(2)), "R 2".parse());
+        assert_eq!(Ok(Motion::Down(2)), "D 2".parse());
+        assert_eq!(Ok(Motion::Up(2)), "U 2".parse());
+        assert_eq!(Ok(Motion::Left(2)), "L 2".parse());
+        assert_eq!(Ok(Motion::Right(2)), "R 2".parse());
         assert_eq!(
             Err(Ooops("invalid movement 'banana'".to_string())),
-            "banana".parse::<Movement>()
+            "banana".parse::<Motion>()
         );
     }
 
     #[test]
     fn moving() {
         let mut rope: Rope = Default::default();
-        rope = move_head(rope, Movement::Up(1));
+        rope = move_head(rope, Motion::Up(1));
         assert_eq!(
             Rope {
                 head: Position { top: 1, left: 0 },
@@ -135,7 +135,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Up(1));
+        rope = move_head(rope, Motion::Up(1));
         assert_eq!(
             Rope {
                 head: Position { top: 2, left: 0 },
@@ -143,7 +143,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Up(1));
+        rope = move_head(rope, Motion::Up(1));
         assert_eq!(
             Rope {
                 head: Position { top: 3, left: 0 },
@@ -155,7 +155,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Up(1));
+        rope = move_head(rope, Motion::Up(1));
         assert_eq!(
             Rope {
                 head: Position { top: 4, left: 0 },
@@ -168,7 +168,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Up(2));
+        rope = move_head(rope, Motion::Up(2));
         assert_eq!(
             Rope {
                 head: Position { top: 6, left: 0 },
@@ -183,7 +183,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Down(1));
+        rope = move_head(rope, Motion::Down(1));
         assert_eq!(
             Rope {
                 head: Position { top: 5, left: 0 },
@@ -198,7 +198,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Down(1));
+        rope = move_head(rope, Motion::Down(1));
         assert_eq!(
             Rope {
                 head: Position { top: 4, left: 0 },
@@ -213,7 +213,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Down(1));
+        rope = move_head(rope, Motion::Down(1));
         assert_eq!(
             Rope {
                 head: Position { top: 3, left: 0 },
@@ -229,7 +229,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Down(1));
+        rope = move_head(rope, Motion::Down(1));
         assert_eq!(
             Rope {
                 head: Position { top: 2, left: 0 },
@@ -246,7 +246,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Down(3));
+        rope = move_head(rope, Motion::Down(3));
         assert_eq!(
             Rope {
                 head: Position { top: -1, left: 0 },
@@ -266,7 +266,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Left(1));
+        rope = move_head(rope, Motion::Left(1));
         assert_eq!(
             Rope {
                 head: Position { top: -1, left: -1 },
@@ -286,7 +286,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Left(1));
+        rope = move_head(rope, Motion::Left(1));
         assert_eq!(
             Rope {
                 head: Position { top: -1, left: -2 },
@@ -307,7 +307,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Left(1));
+        rope = move_head(rope, Motion::Left(1));
         assert_eq!(
             Rope {
                 head: Position { top: -1, left: -3 },
@@ -329,7 +329,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Left(3));
+        rope = move_head(rope, Motion::Left(3));
         assert_eq!(
             Rope {
                 head: Position { top: -1, left: -6 },
@@ -354,7 +354,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Right(1));
+        rope = move_head(rope, Motion::Right(1));
         assert_eq!(
             Rope {
                 head: Position { top: -1, left: -5 },
@@ -379,7 +379,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Right(1));
+        rope = move_head(rope, Motion::Right(1));
         assert_eq!(
             Rope {
                 head: Position { top: -1, left: -4 },
@@ -404,7 +404,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Right(4));
+        rope = move_head(rope, Motion::Right(4));
         assert_eq!(
             Rope {
                 head: Position { top: -1, left: 0 },
@@ -433,7 +433,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Up(1));
+        rope = move_head(rope, Motion::Up(1));
         assert_eq!(
             Rope {
                 head: Position { top: 0, left: 0 },
@@ -462,7 +462,7 @@ mod tests {
             },
             rope
         );
-        rope = move_head(rope, Movement::Up(1));
+        rope = move_head(rope, Motion::Up(1));
         assert_eq!(
             Rope {
                 head: Position { top: 1, left: 0 },
