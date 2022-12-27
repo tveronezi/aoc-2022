@@ -21,3 +21,6 @@ pub const DAY7: &str = include_str!("day7.txt");
 
 /// Input data for day 8
 pub const DAY8: &str = include_str!("day8.txt");
+
+/// Input data for day 9
+pub const DAY9: &str = include_str!("day9.txt");
