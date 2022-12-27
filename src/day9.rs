@@ -41,15 +41,16 @@ impl FromStr for Motion {
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct Rope {
-    head: Position,
-    pub(crate) tail: Vec<Position>,
+    nodes: Vec<Position>,
+    pub(crate) tail_positions: Vec<Position>,
 }
 
 impl Default for Rope {
     fn default() -> Self {
+        let init: Position = Default::default();
         Self {
-            head: Default::default(),
-            tail: vec![Default::default()],
+            nodes: vec![init.clone(), init.clone()],
+            tail_positions: vec![init],
         }
     }
 }
@@ -58,50 +59,126 @@ pub(crate) fn move_head(mut rope: Rope, motion: Motion) -> Rope {
     match motion {
         Motion::Up(steps) => {
             for _ in 0..steps {
-                rope.head.top += 1;
-                let tail = rope.tail.last().expect("this list starts with one element");
-                if rope.head.top - tail.top > 1 {
-                    rope.tail.push(Position {
-                        left: rope.head.left,
-                        top: rope.head.top - 1,
-                    });
+                let mut previous = rope
+                    .nodes
+                    .first()
+                    .expect("this list starts with one element")
+                    .clone();
+                previous.top += 1;
+                let mut new_nodes = vec![previous.clone()];
+                for current in rope.nodes.iter().skip(1) {
+                    if previous.top - current.top > 1 {
+                        new_nodes.push(Position {
+                            top: previous.top - 1,
+                            left: previous.left,
+                        });
+                    } else {
+                        new_nodes.push(current.clone());
+                    }
                 }
+                let last = new_nodes.last().expect("the rope has always a tail");
+                if rope
+                    .tail_positions
+                    .last()
+                    .expect("the tail has always one last position")
+                    != last
+                {
+                    rope.tail_positions.push(last.clone())
+                }
+                rope.nodes = new_nodes;
             }
         }
         Motion::Down(steps) => {
             for _ in 0..steps {
-                rope.head.top -= 1;
-                let tail = rope.tail.last().expect("this list starts with one element");
-                if tail.top - rope.head.top > 1 {
-                    rope.tail.push(Position {
-                        left: rope.head.left,
-                        top: rope.head.top + 1,
-                    });
+                let mut previous = rope
+                    .nodes
+                    .first()
+                    .expect("this list starts with one element")
+                    .clone();
+                previous.top -= 1;
+                let mut new_nodes = vec![previous.clone()];
+                for current in rope.nodes.iter().skip(1) {
+                    if current.top - previous.top > 1 {
+                        new_nodes.push(Position {
+                            top: previous.top + 1,
+                            left: previous.left,
+                        });
+                    } else {
+                        new_nodes.push(current.clone());
+                    }
                 }
+                let last = new_nodes.last().expect("the rope has always a tail");
+                if rope
+                    .tail_positions
+                    .last()
+                    .expect("the tail has always one last position")
+                    != last
+                {
+                    rope.tail_positions.push(last.clone())
+                }
+                rope.nodes = new_nodes;
             }
         }
         Motion::Left(steps) => {
             for _ in 0..steps {
-                rope.head.left -= 1;
-                let tail = rope.tail.last().expect("this list starts with one element");
-                if tail.left - rope.head.left > 1 {
-                    rope.tail.push(Position {
-                        left: rope.head.left + 1,
-                        top: rope.head.top,
-                    });
+                let mut previous = rope
+                    .nodes
+                    .first()
+                    .expect("this list starts with one element")
+                    .clone();
+                previous.left -= 1;
+                let mut new_nodes = vec![previous.clone()];
+                for current in rope.nodes.iter_mut().skip(1) {
+                    if current.left - previous.left > 1 {
+                        new_nodes.push(Position {
+                            top: previous.top,
+                            left: previous.left + 1,
+                        });
+                    } else {
+                        new_nodes.push(current.clone());
+                    }
                 }
+                let last = new_nodes.last().expect("the rope has always a tail");
+                if rope
+                    .tail_positions
+                    .last()
+                    .expect("the tail has always one last position")
+                    != last
+                {
+                    rope.tail_positions.push(last.clone())
+                }
+                rope.nodes = new_nodes;
             }
         }
         Motion::Right(steps) => {
             for _ in 0..steps {
-                rope.head.left += 1;
-                let tail = rope.tail.last().expect("this list starts with one element");
-                if rope.head.left - tail.left > 1 {
-                    rope.tail.push(Position {
-                        left: rope.head.left - 1,
-                        top: rope.head.top,
-                    });
+                let mut previous = rope
+                    .nodes
+                    .first()
+                    .expect("this list starts with one element")
+                    .clone();
+                previous.left += 1;
+                let mut new_nodes = vec![previous.clone()];
+                for current in rope.nodes.iter_mut().skip(1) {
+                    if previous.left - current.left > 1 {
+                        new_nodes.push(Position {
+                            top: previous.top,
+                            left: previous.left - 1,
+                        });
+                    } else {
+                        new_nodes.push(current.clone());
+                    }
                 }
+                let last = new_nodes.last().expect("the rope has always a tail");
+                if rope
+                    .tail_positions
+                    .last()
+                    .expect("the tail has always one last position")
+                    != last
+                {
+                    rope.tail_positions.push(last.clone())
+                }
+                rope.nodes = new_nodes;
             }
         }
     }
@@ -130,24 +207,24 @@ mod tests {
         rope = move_head(rope, Motion::Up(1));
         assert_eq!(
             Rope {
-                head: Position { top: 1, left: 0 },
-                tail: vec![Position { top: 0, left: 0 }]
+                nodes: vec![Position { top: 1, left: 0 }, Position { top: 0, left: 0 }],
+                tail_positions: vec![Position { top: 0, left: 0 }]
             },
             rope
         );
         rope = move_head(rope, Motion::Up(1));
         assert_eq!(
             Rope {
-                head: Position { top: 2, left: 0 },
-                tail: vec![Position { top: 0, left: 0 }, Position { top: 1, left: 0 }]
+                nodes: vec![Position { top: 2, left: 0 }, Position { top: 1, left: 0 }],
+                tail_positions: vec![Position { top: 0, left: 0 }, Position { top: 1, left: 0 }]
             },
             rope
         );
         rope = move_head(rope, Motion::Up(1));
         assert_eq!(
             Rope {
-                head: Position { top: 3, left: 0 },
-                tail: vec![
+                nodes: vec![Position { top: 3, left: 0 }, Position { top: 2, left: 0 }],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 }
@@ -158,8 +235,8 @@ mod tests {
         rope = move_head(rope, Motion::Up(1));
         assert_eq!(
             Rope {
-                head: Position { top: 4, left: 0 },
-                tail: vec![
+                nodes: vec![Position { top: 4, left: 0 }, Position { top: 3, left: 0 }],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -171,8 +248,8 @@ mod tests {
         rope = move_head(rope, Motion::Up(2));
         assert_eq!(
             Rope {
-                head: Position { top: 6, left: 0 },
-                tail: vec![
+                nodes: vec![Position { top: 6, left: 0 }, Position { top: 5, left: 0 }],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -186,8 +263,8 @@ mod tests {
         rope = move_head(rope, Motion::Down(1));
         assert_eq!(
             Rope {
-                head: Position { top: 5, left: 0 },
-                tail: vec![
+                nodes: vec![Position { top: 5, left: 0 }, Position { top: 5, left: 0 }],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -201,8 +278,8 @@ mod tests {
         rope = move_head(rope, Motion::Down(1));
         assert_eq!(
             Rope {
-                head: Position { top: 4, left: 0 },
-                tail: vec![
+                nodes: vec![Position { top: 4, left: 0 }, Position { top: 5, left: 0 }],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -216,8 +293,8 @@ mod tests {
         rope = move_head(rope, Motion::Down(1));
         assert_eq!(
             Rope {
-                head: Position { top: 3, left: 0 },
-                tail: vec![
+                nodes: vec![Position { top: 3, left: 0 }, Position { top: 4, left: 0 }],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -232,8 +309,8 @@ mod tests {
         rope = move_head(rope, Motion::Down(1));
         assert_eq!(
             Rope {
-                head: Position { top: 2, left: 0 },
-                tail: vec![
+                nodes: vec![Position { top: 2, left: 0 }, Position { top: 3, left: 0 }],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -249,8 +326,8 @@ mod tests {
         rope = move_head(rope, Motion::Down(3));
         assert_eq!(
             Rope {
-                head: Position { top: -1, left: 0 },
-                tail: vec![
+                nodes: vec![Position { top: -1, left: 0 }, Position { top: 0, left: 0 }],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -269,8 +346,8 @@ mod tests {
         rope = move_head(rope, Motion::Left(1));
         assert_eq!(
             Rope {
-                head: Position { top: -1, left: -1 },
-                tail: vec![
+                nodes: vec![Position { top: -1, left: -1 }, Position { top: 0, left: 0 }],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -289,8 +366,11 @@ mod tests {
         rope = move_head(rope, Motion::Left(1));
         assert_eq!(
             Rope {
-                head: Position { top: -1, left: -2 },
-                tail: vec![
+                nodes: vec![
+                    Position { top: -1, left: -2 },
+                    Position { top: -1, left: -1 }
+                ],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -310,8 +390,11 @@ mod tests {
         rope = move_head(rope, Motion::Left(1));
         assert_eq!(
             Rope {
-                head: Position { top: -1, left: -3 },
-                tail: vec![
+                nodes: vec![
+                    Position { top: -1, left: -3 },
+                    Position { top: -1, left: -2 }
+                ],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -332,8 +415,11 @@ mod tests {
         rope = move_head(rope, Motion::Left(3));
         assert_eq!(
             Rope {
-                head: Position { top: -1, left: -6 },
-                tail: vec![
+                nodes: vec![
+                    Position { top: -1, left: -6 },
+                    Position { top: -1, left: -5 }
+                ],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -357,8 +443,11 @@ mod tests {
         rope = move_head(rope, Motion::Right(1));
         assert_eq!(
             Rope {
-                head: Position { top: -1, left: -5 },
-                tail: vec![
+                nodes: vec![
+                    Position { top: -1, left: -5 },
+                    Position { top: -1, left: -5 }
+                ],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -382,8 +471,11 @@ mod tests {
         rope = move_head(rope, Motion::Right(1));
         assert_eq!(
             Rope {
-                head: Position { top: -1, left: -4 },
-                tail: vec![
+                nodes: vec![
+                    Position { top: -1, left: -4 },
+                    Position { top: -1, left: -5 }
+                ],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -407,8 +499,11 @@ mod tests {
         rope = move_head(rope, Motion::Right(4));
         assert_eq!(
             Rope {
-                head: Position { top: -1, left: 0 },
-                tail: vec![
+                nodes: vec![
+                    Position { top: -1, left: 0 },
+                    Position { top: -1, left: -1 }
+                ],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -436,8 +531,8 @@ mod tests {
         rope = move_head(rope, Motion::Up(1));
         assert_eq!(
             Rope {
-                head: Position { top: 0, left: 0 },
-                tail: vec![
+                nodes: vec![Position { top: 0, left: 0 }, Position { top: -1, left: -1 }],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },
@@ -465,8 +560,8 @@ mod tests {
         rope = move_head(rope, Motion::Up(1));
         assert_eq!(
             Rope {
-                head: Position { top: 1, left: 0 },
-                tail: vec![
+                nodes: vec![Position { top: 1, left: 0 }, Position { top: 0, left: 0 }],
+                tail_positions: vec![
                     Position { top: 0, left: 0 },
                     Position { top: 1, left: 0 },
                     Position { top: 2, left: 0 },

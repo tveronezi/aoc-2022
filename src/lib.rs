@@ -264,6 +264,6 @@ pub fn tail_visits(values: &str) -> Result<usize, Ooops> {
     for line in values.lines() {
         rope = move_head(rope, line.parse()?);
     }
-    let tail_positions: HashSet<Position> = HashSet::from_iter(rope.tail.iter().cloned());
+    let tail_positions: HashSet<Position> = HashSet::from_iter(rope.tail_positions.iter().cloned());
     Ok(tail_positions.len())
 }
