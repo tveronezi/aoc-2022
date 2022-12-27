@@ -16,6 +16,8 @@ mod error;
 /// Input files
 pub mod input;
 
+use std::collections::HashSet;
+
 use day1::group_max;
 use day2::{CheatRpsMatch, RpsMatch};
 use day3::{priority, Rucksack};
@@ -26,6 +28,7 @@ use day7::{input_to_root, FsItem};
 use day8::{
     viewing_distance, BottomTrees, Direction, LeftTrees, RightTrees, TopTrees, Tree, Trees,
 };
+use day9::{move_head, Position, Rope};
 use error::Ooops;
 
 /// Part A -> <https://adventofcode.com/2022/day/1>
@@ -253,4 +256,14 @@ pub fn highest_scenic_score_possible(values: &str) -> usize {
         })
         .max()
         .unwrap_or(0)
+}
+
+/// Part A -> <https://adventofcode.com/2022/day/9>
+pub fn tail_visits(values: &str) -> Result<usize, Ooops> {
+    let mut rope: Rope = Default::default();
+    for line in values.lines() {
+        rope = move_head(rope, line.parse()?);
+    }
+    let tail_positions: HashSet<Position> = HashSet::from_iter(rope.tail.iter().cloned());
+    Ok(tail_positions.len())
 }

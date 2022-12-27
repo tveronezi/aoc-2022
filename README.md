@@ -79,4 +79,10 @@ assert_eq!(
     highest_scenic_score_possible(input::DAY8),
     313200
 );
+
+// Day 9
+assert_eq!(
+    tail_visits(input::DAY9).unwrap(),
+    6522
+);
 ```

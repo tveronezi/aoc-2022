@@ -1,21 +1,48 @@
-#[derive(Debug, PartialEq, Eq, Default, Clone)]
-struct Position {
+use std::str::FromStr;
+
+use crate::error::Ooops;
+
+#[derive(Debug, PartialEq, Eq, Default, Clone, Hash)]
+pub(crate) struct Position {
     top: isize,
     left: isize,
 }
 
 #[derive(Debug, PartialEq, Eq)]
-enum Movement {
+pub(crate) enum Movement {
     Up(u32),
     Down(u32),
     Left(u32),
     Right(u32),
 }
 
+impl FromStr for Movement {
+    type Err = Ooops;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut split = s.split_whitespace();
+        match (split.next(), split.next()) {
+            (Some(direction), Some(value)) if direction == "U" && value.parse::<u32>().is_ok() => {
+                Ok(Movement::Up(value.parse::<u32>().unwrap()))
+            }
+            (Some(direction), Some(value)) if direction == "D" && value.parse::<u32>().is_ok() => {
+                Ok(Movement::Down(value.parse::<u32>().unwrap()))
+            }
+            (Some(direction), Some(value)) if direction == "L" && value.parse::<u32>().is_ok() => {
+                Ok(Movement::Left(value.parse::<u32>().unwrap()))
+            }
+            (Some(direction), Some(value)) if direction == "R" && value.parse::<u32>().is_ok() => {
+                Ok(Movement::Right(value.parse::<u32>().unwrap()))
+            }
+            _ => Err(Ooops(format!("invalid movement '{}'", s))),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
-struct Rope {
+pub(crate) struct Rope {
     head: Position,
-    tail: Vec<Position>,
+    pub(crate) tail: Vec<Position>,
 }
 
 impl Default for Rope {
@@ -27,7 +54,7 @@ impl Default for Rope {
     }
 }
 
-fn move_head(mut rope: Rope, movement: Movement) -> Rope {
+pub(crate) fn move_head(mut rope: Rope, movement: Movement) -> Rope {
     match movement {
         Movement::Up(steps) => {
             for _ in 0..steps {
@@ -84,6 +111,18 @@ fn move_head(mut rope: Rope, movement: Movement) -> Rope {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parsing() {
+        assert_eq!(Ok(Movement::Down(2)), "D 2".parse());
+        assert_eq!(Ok(Movement::Up(2)), "U 2".parse());
+        assert_eq!(Ok(Movement::Left(2)), "L 2".parse());
+        assert_eq!(Ok(Movement::Right(2)), "R 2".parse());
+        assert_eq!(
+            Err(Ooops("invalid movement 'banana'".to_string())),
+            "banana".parse::<Movement>()
+        );
+    }
 
     #[test]
     fn moving() {
