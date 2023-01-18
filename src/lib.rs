@@ -258,12 +258,21 @@ pub fn highest_scenic_score_possible(values: &str) -> usize {
         .unwrap_or(0)
 }
 
-/// Part A -> <https://adventofcode.com/2022/day/9>
-pub fn tail_visits(values: &str) -> Result<usize, Ooops> {
-    let mut rope: Rope = Default::default();
+fn count_visits(values: &str, size: usize) -> Result<usize, Ooops> {
+    let mut rope = Rope::new(size);
     for line in values.lines() {
         rope = move_head(rope, line.parse()?);
     }
     let tail_positions: HashSet<Position> = HashSet::from_iter(rope.tail_positions.iter().cloned());
     Ok(tail_positions.len())
+}
+
+/// Part A -> <https://adventofcode.com/2022/day/9>
+pub fn tail_visits(values: &str) -> Result<usize, Ooops> {
+    count_visits(values, 2)
+}
+
+/// Part B -> <https://adventofcode.com/2022/day/9>
+pub fn tail_visits_size(values: &str, size: usize) -> Result<usize, Ooops> {
+    count_visits(values, size)
 }

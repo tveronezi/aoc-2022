@@ -85,4 +85,8 @@ assert_eq!(
     tail_visits(input::DAY9).unwrap(),
     6522
 );
+assert_eq!(
+    tail_visits_size(input::DAY9, 11).unwrap(),
+    0
+);
 ```
